@@ -1,5 +1,81 @@
 'use strict';
 
+// ── Auth ──
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function initAuth() {
+  const loginScreen = document.getElementById('loginScreen');
+  const appRoot     = document.getElementById('appRoot');
+  const loginForm   = document.getElementById('loginForm');
+  const loginSub    = document.getElementById('loginSub');
+  const loginLabel  = document.getElementById('loginLabel');
+  const loginBtn    = document.getElementById('loginBtn');
+  const loginError  = document.getElementById('loginError');
+  const confirmGroup = document.getElementById('confirmGroup');
+  const loginConfirm = document.getElementById('loginConfirm');
+
+  const storedHash = localStorage.getItem('sp_pw_hash');
+  const isSetup = !storedHash;
+
+  if (isSetup) {
+    loginSub.textContent = 'Erster Start – lege deine Matrikelnummer als Zugangscode fest.';
+    loginLabel.textContent = 'Matrikelnummer festlegen';
+    confirmGroup.classList.remove('hidden');
+    loginBtn.textContent = 'Zugangscode setzen';
+  }
+
+  if (sessionStorage.getItem('sp_authed') === '1') {
+    loginScreen.style.display = 'none';
+    appRoot.style.display = 'flex';
+    return;
+  }
+
+  loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    loginError.classList.add('hidden');
+    const pw = document.getElementById('loginPassword').value;
+
+    if (isSetup) {
+      const pw2 = loginConfirm.value;
+      if (pw !== pw2) {
+        loginError.textContent = 'Die Eingaben stimmen nicht überein.';
+        loginError.classList.remove('hidden');
+        return;
+      }
+      if (pw.length < 4) {
+        loginError.textContent = 'Mindestens 4 Zeichen erforderlich.';
+        loginError.classList.remove('hidden');
+        return;
+      }
+      localStorage.setItem('sp_pw_hash', await sha256(pw));
+      sessionStorage.setItem('sp_authed', '1');
+      loginScreen.style.display = 'none';
+      appRoot.style.display = 'flex';
+      initApp();
+    } else {
+      const hash = await sha256(pw);
+      if (hash === storedHash) {
+        sessionStorage.setItem('sp_authed', '1');
+        loginScreen.style.display = 'none';
+        appRoot.style.display = 'flex';
+        initApp();
+      } else {
+        loginError.textContent = 'Falsche Matrikelnummer.';
+        loginError.classList.remove('hidden');
+        document.getElementById('loginPassword').value = '';
+      }
+    }
+  });
+}
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('sp_authed');
+  location.reload();
+});
+
 // ── Constants ──
 const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
 const HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 07:00–20:00
@@ -404,4 +480,10 @@ document.getElementById('deleteLessonBtn').addEventListener('click', () => {
 });
 
 // ── Init ──
-renderTimetable();
+function initApp() {
+  renderTimetable();
+}
+
+initAuth().then(() => {
+  if (sessionStorage.getItem('sp_authed') === '1') initApp();
+});
