@@ -379,6 +379,7 @@ function renderCourses() {
       ${course.teacher ? `<div class="course-card-teacher">${course.teacher}</div>` : ''}
       ${course.room ? `<div class="course-card-teacher">${course.room}</div>` : ''}
       ${lessonInfo ? `<div class="course-card-lessons">${lessonInfo}</div>` : ''}
+      ${course.moodleUrl ? `<a class="moodle-btn" href="${course.moodleUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Moodle öffnen ↗</a>` : ''}
     `;
     card.addEventListener('click', () => openCourseModal(course.id));
     grid.appendChild(card);
@@ -419,6 +420,7 @@ function openCourseModal(id) {
     document.getElementById('courseName').value = course.name;
     document.getElementById('courseTeacher').value = course.teacher || '';
     document.getElementById('courseRoom').value = course.room || '';
+    document.getElementById('courseMoodle').value = course.moodleUrl || '';
     buildColorPicker(course.color);
     deleteBtn.classList.remove('hidden');
   } else {
@@ -427,6 +429,7 @@ function openCourseModal(id) {
     document.getElementById('courseName').value = '';
     document.getElementById('courseTeacher').value = '';
     document.getElementById('courseRoom').value = '';
+    document.getElementById('courseMoodle').value = '';
     buildColorPicker(COLORS[courses.length % COLORS.length]);
     deleteBtn.classList.add('hidden');
   }
@@ -560,10 +563,11 @@ document.getElementById('courseForm').addEventListener('submit', e => {
   e.preventDefault();
   const id = document.getElementById('courseId').value;
   const data = {
-    name:    document.getElementById('courseName').value.trim(),
-    teacher: document.getElementById('courseTeacher').value.trim(),
-    room:    document.getElementById('courseRoom').value.trim(),
-    color:   getSelectedColor(),
+    name:      document.getElementById('courseName').value.trim(),
+    teacher:   document.getElementById('courseTeacher').value.trim(),
+    room:      document.getElementById('courseRoom').value.trim(),
+    moodleUrl: document.getElementById('courseMoodle').value.trim(),
+    color:     getSelectedColor(),
   };
 
   if (id) {
