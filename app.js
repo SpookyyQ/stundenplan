@@ -15,13 +15,15 @@ const SEMESTER_END = '2026-07-17';
 const PRESET_COURSES = [
   { id: 'c_kommunikation',   name: 'Kommunikation',   teacher: 'Frau Seeliger', room: 'A1 06',  color: '#6adfff' },
   { id: 'c_servicelearning', name: 'Service Learning', teacher: 'Herr Schug',   room: '',       color: '#ffb86a' },
-  { id: 'c_statistik2',      name: 'Statistik 2',      teacher: 'Frau Pulham',  room: 'A E 14', color: '#c46aff' }
+  { id: 'c_statistik2',      name: 'Statistik 2',      teacher: 'Frau Pulham',  room: 'A E 14', color: '#c46aff' },
+  { id: 'c_b2b',             name: 'B2B Marketing',    teacher: 'Herr Steffen', room: 'A 1 05', color: '#6aff9e' }
 ];
 
 const PRESET_LESSONS = [
   { id: 'l_komm_tue',  courseId: 'c_kommunikation',   day: 1, start: '08:15', end: '09:45', room: '' },
   { id: 'l_stat2_tue', courseId: 'c_statistik2', day: 1, start: '10:00', end: '11:30', room: '' },
   { id: 'l_stat2_thu', courseId: 'c_statistik2', day: 3, start: '11:45', end: '13:15', room: 'B E 07' },
+  { id: 'l_b2b_wed', courseId: 'c_b2b', day: 2, start: '08:15', end: '11:30', room: '', startDate: '2026-05-05' },
   { id: 'l_sl_1', courseId: 'c_servicelearning', day: 0, start: '08:15', end: '09:45', room: 'E-2-02', date: '2026-04-27' },
   { id: 'l_sl_2', courseId: 'c_servicelearning', day: 0, start: '11:45', end: '14:00', room: 'B-E-07',  date: '2026-05-11' },
   { id: 'l_sl_3', courseId: 'c_servicelearning', day: 0, start: '13:15', end: '14:15', room: 'Digital', date: '2026-06-08' },
@@ -307,9 +309,12 @@ function renderTimetable() {
     wrapper.style.height = (HOURS.length * HOUR_HEIGHT) + 'px';
 
     // Lessons: weekly (no date) OR date-specific matching this column
-    const dayLessons = lessons.filter(l =>
-      l.date ? l.date === colISO : l.day === dayIndex
-    );
+    const dayLessons = lessons.filter(l => {
+      if (l.date) return l.date === colISO;
+      if (l.day !== dayIndex) return false;
+      if (l.startDate && colISO < l.startDate) return false;
+      return true;
+    });
     dayLessons.forEach(lesson => {
       const course = courses.find(c => c.id === lesson.courseId);
       if (!course) return;
