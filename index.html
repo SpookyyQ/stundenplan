@@ -48,22 +48,34 @@
         </button>
       </nav>
       <div class="sidebar-footer">
-        <div class="cardm" id="weatherWidget">
-          <div class="wcard">
-            <div class="w-icon-wrap" id="wIcon">⋯</div>
-            <div class="w-temp"><span id="wTemp">–</span> °C</div>
-            <div class="w-city">Saarbrücken</div>
-            <div class="w-desc" id="wDesc">Laden…</div>
+        <div class="cardm">
+          <div class="card">
+            <div class="weather" id="wIcon">☀️</div>
+            <div class="main"><span id="wTemp">–</span> °C</div>
+            <div class="mainsub">Saarbrücken</div>
           </div>
-          <div class="wcard2">
-            <div class="w-row">
-              <div class="w-stat"><span class="w-stat-icon">💧</span><span id="wHumidity">–</span>%<div class="w-stat-label">Feuchte</div></div>
-              <div class="w-stat"><span class="w-stat-icon">💨</span><span id="wWind">–</span><div class="w-stat-label">km/h</div></div>
+          <div class="card2">
+            <div class="upper">
+              <div class="humidity">
+                <span class="stat-emoji">💧</span>
+                <div class="humiditytext">Feuchte<br /><span id="wHumidity">–</span>%</div>
+              </div>
+              <div class="air">
+                <span class="stat-emoji">💨</span>
+                <div class="airtext">Wind<br /><span id="wWind">–</span> km/h</div>
+              </div>
             </div>
-            <div class="w-row">
-              <div class="w-stat"><span class="w-stat-icon">🌡</span><span id="wFeels">–</span>°<div class="w-stat-label">Gefühlt</div></div>
-              <div class="w-stat"><span class="w-stat-icon">📊</span><span id="wPressure">–</span><div class="w-stat-label">hPa</div></div>
+            <div class="lower">
+              <div class="realfeel">
+                <span class="stat-emoji">🌡</span>
+                <div class="realfeeltext">Gefühlt<br /><span id="wFeels">–</span>°C</div>
+              </div>
+              <div class="pressure">
+                <span class="stat-emoji">📊</span>
+                <div class="pressuretext">Druck<br /><span id="wPressure">–</span> hPa</div>
+              </div>
             </div>
+            <div class="card3" id="wDesc">Laden…</div>
           </div>
         </div>
         <div class="current-week">
