@@ -1,0 +1,407 @@
+'use strict';
+
+// ── Constants ──
+const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
+const HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 07:00–20:00
+const HOUR_HEIGHT = 72; // px, must match CSS --hour-height
+const DAY_START = 7;    // 07:00
+
+const COLORS = [
+  '#7c6aff', '#ff6a9e', '#6adfff', '#6aff9e', '#ffb86a',
+  '#ff6a6a', '#c46aff', '#6a9eff', '#ffea6a', '#ff9e6a'
+];
+
+// ── State ──
+let courses  = JSON.parse(localStorage.getItem('sp_courses')  || '[]');
+let lessons  = JSON.parse(localStorage.getItem('sp_lessons')  || '[]');
+let weekOffset = 0;
+
+// ── Persistence ──
+function save() {
+  localStorage.setItem('sp_courses', JSON.stringify(courses));
+  localStorage.setItem('sp_lessons', JSON.stringify(lessons));
+}
+
+// ── ID generator ──
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+// ── Week helpers ──
+function getMonday(offset = 0) {
+  const d = new Date();
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - day + 1 + offset * 7);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function getWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+function formatDate(date) {
+  return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+}
+
+// ── Time helpers ──
+function timeToMinutes(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function minutesToPx(minutes) {
+  return (minutes / 60) * HOUR_HEIGHT;
+}
+
+function lessonTop(start) {
+  return minutesToPx(timeToMinutes(start) - DAY_START * 60);
+}
+
+function lessonHeight(start, end) {
+  return minutesToPx(timeToMinutes(end) - timeToMinutes(start));
+}
+
+// ── Views ──
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === name);
+  });
+}
+
+// ── Timetable render ──
+function renderTimetable() {
+  const monday = getMonday(weekOffset);
+  const wn = getWeekNumber(monday);
+  document.getElementById('weekNumber').textContent = wn;
+
+  const friday = new Date(monday);
+  friday.setDate(friday.getDate() + 4);
+  document.getElementById('weekRange').textContent =
+    formatDate(monday) + ' – ' + formatDate(friday);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const grid = document.getElementById('timetableGrid');
+  grid.innerHTML = '';
+
+  // Header
+  const header = document.createElement('div');
+  header.className = 'grid-header';
+  header.innerHTML = '<div></div>'; // empty time col
+  DAYS.forEach((name, i) => {
+    const d = new Date(monday);
+    d.setDate(d.getDate() + i);
+    const isToday = d.getTime() === today.getTime();
+    const label = document.createElement('div');
+    label.className = 'grid-day-label' + (isToday ? ' today' : '');
+    label.innerHTML = `${name}<span class="day-date">${d.getDate()}</span>`;
+    header.appendChild(label);
+  });
+  grid.appendChild(header);
+
+  // Body
+  const body = document.createElement('div');
+  body.className = 'grid-body';
+
+  // Time column
+  const timeCol = document.createElement('div');
+  timeCol.className = 'grid-time-col';
+  HOURS.forEach(h => {
+    const slot = document.createElement('div');
+    slot.className = 'time-slot';
+    slot.innerHTML = `<span class="time-label">${String(h).padStart(2,'0')}:00</span>`;
+    timeCol.appendChild(slot);
+  });
+  body.appendChild(timeCol);
+
+  // Day columns
+  DAYS.forEach((_, dayIndex) => {
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'relative';
+    wrapper.style.minWidth = '130px';
+
+    // Hour lines
+    const linesDiv = document.createElement('div');
+    linesDiv.style.position = 'absolute';
+    linesDiv.style.inset = '0';
+    HOURS.forEach(() => {
+      const line = document.createElement('div');
+      line.className = 'hour-line';
+      line.style.height = HOUR_HEIGHT + 'px';
+      line.style.borderTop = '1px solid var(--border)';
+      linesDiv.appendChild(line);
+    });
+    wrapper.appendChild(linesDiv);
+
+    // Total height
+    wrapper.style.height = (HOURS.length * HOUR_HEIGHT) + 'px';
+
+    // Lessons for this day
+    const dayLessons = lessons.filter(l => l.day === dayIndex);
+    dayLessons.forEach(lesson => {
+      const course = courses.find(c => c.id === lesson.courseId);
+      if (!course) return;
+
+      const card = document.createElement('div');
+      card.className = 'lesson-card';
+      card.style.top    = lessonTop(lesson.start) + 'px';
+      card.style.height = Math.max(lessonHeight(lesson.start, lesson.end), 28) + 'px';
+      card.style.background = course.color;
+
+      card.innerHTML = `
+        <div class="lesson-name">${course.name}</div>
+        <div class="lesson-time">${lesson.start} – ${lesson.end}</div>
+        ${lesson.room ? `<div class="lesson-room">${lesson.room}</div>` : ''}
+        ${course.teacher ? `<div class="lesson-teacher">${course.teacher}</div>` : ''}
+      `;
+
+      card.addEventListener('click', () => openLessonModal(lesson.id));
+      wrapper.appendChild(card);
+    });
+
+    body.appendChild(wrapper);
+  });
+
+  grid.appendChild(body);
+}
+
+// ── Courses render ──
+function renderCourses() {
+  const grid = document.getElementById('coursesGrid');
+  grid.innerHTML = '';
+
+  if (courses.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div style="font-size:40px">✦</div>
+        <p>Noch keine Kurse. Füge deinen ersten Kurs hinzu!</p>
+      </div>`;
+    return;
+  }
+
+  courses.forEach(course => {
+    const count = lessons.filter(l => l.courseId === course.id).length;
+    const card = document.createElement('div');
+    card.className = 'course-card';
+    card.innerHTML = `
+      <div class="course-card-bar" style="background:${course.color}"></div>
+      <div class="course-card-name">${course.name}</div>
+      ${course.teacher ? `<div class="course-card-teacher">${course.teacher}</div>` : ''}
+      <div class="course-card-lessons">${count} Stunde${count !== 1 ? 'n' : ''} pro Woche</div>
+    `;
+    card.addEventListener('click', () => openCourseModal(course.id));
+    grid.appendChild(card);
+  });
+}
+
+// ── Color picker ──
+function buildColorPicker(selectedColor) {
+  const picker = document.getElementById('colorPicker');
+  picker.innerHTML = '';
+  COLORS.forEach(color => {
+    const dot = document.createElement('div');
+    dot.className = 'color-dot' + (color === selectedColor ? ' selected' : '');
+    dot.style.background = color;
+    dot.dataset.color = color;
+    dot.addEventListener('click', () => {
+      picker.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+      dot.classList.add('selected');
+    });
+    picker.appendChild(dot);
+  });
+}
+
+function getSelectedColor() {
+  const dot = document.querySelector('.color-dot.selected');
+  return dot ? dot.dataset.color : COLORS[0];
+}
+
+// ── Course modal ──
+function openCourseModal(id) {
+  const modal = document.getElementById('modalCourse');
+  const deleteBtn = document.getElementById('deleteCourseBtn');
+
+  if (id) {
+    const course = courses.find(c => c.id === id);
+    document.getElementById('modalCourseTitle').textContent = 'Kurs bearbeiten';
+    document.getElementById('courseId').value = id;
+    document.getElementById('courseName').value = course.name;
+    document.getElementById('courseTeacher').value = course.teacher || '';
+    buildColorPicker(course.color);
+    deleteBtn.classList.remove('hidden');
+  } else {
+    document.getElementById('modalCourseTitle').textContent = 'Kurs hinzufügen';
+    document.getElementById('courseId').value = '';
+    document.getElementById('courseName').value = '';
+    document.getElementById('courseTeacher').value = '';
+    buildColorPicker(COLORS[courses.length % COLORS.length]);
+    deleteBtn.classList.add('hidden');
+  }
+
+  modal.classList.add('open');
+}
+
+function closeCourseModal() {
+  document.getElementById('modalCourse').classList.remove('open');
+}
+
+// ── Lesson modal ──
+function openLessonModal(id) {
+  const modal = document.getElementById('modalLesson');
+  const deleteBtn = document.getElementById('deleteLessonBtn');
+  const select = document.getElementById('lessonCourse');
+
+  // Populate course select
+  select.innerHTML = courses.map(c =>
+    `<option value="${c.id}">${c.name}</option>`
+  ).join('');
+
+  if (courses.length === 0) {
+    alert('Bitte zuerst einen Kurs anlegen!');
+    return;
+  }
+
+  if (id) {
+    const lesson = lessons.find(l => l.id === id);
+    document.getElementById('modalLessonTitle').textContent = 'Stunde bearbeiten';
+    document.getElementById('lessonId').value = id;
+    select.value = lesson.courseId;
+    document.getElementById('lessonDay').value = lesson.day;
+    document.getElementById('lessonStart').value = lesson.start;
+    document.getElementById('lessonEnd').value = lesson.end;
+    document.getElementById('lessonRoom').value = lesson.room || '';
+    deleteBtn.classList.remove('hidden');
+  } else {
+    document.getElementById('modalLessonTitle').textContent = 'Stunde hinzufügen';
+    document.getElementById('lessonId').value = '';
+    document.getElementById('lessonDay').value = '0';
+    document.getElementById('lessonStart').value = '08:00';
+    document.getElementById('lessonEnd').value = '09:30';
+    document.getElementById('lessonRoom').value = '';
+    deleteBtn.classList.add('hidden');
+  }
+
+  modal.classList.add('open');
+}
+
+function closeLessonModal() {
+  document.getElementById('modalLesson').classList.remove('open');
+}
+
+// ── Event listeners ──
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    showView(btn.dataset.view);
+    if (btn.dataset.view === 'timetable') renderTimetable();
+    if (btn.dataset.view === 'courses')   renderCourses();
+  });
+});
+
+// Navigation
+document.getElementById('prevWeek').addEventListener('click', () => {
+  weekOffset--; renderTimetable();
+});
+document.getElementById('nextWeek').addEventListener('click', () => {
+  weekOffset++; renderTimetable();
+});
+document.getElementById('todayBtn').addEventListener('click', () => {
+  weekOffset = 0; renderTimetable();
+});
+
+// Open modals
+document.getElementById('openAddLesson').addEventListener('click', () => openLessonModal(null));
+document.getElementById('openAddCourse').addEventListener('click', () => openCourseModal(null));
+
+// Close modals
+document.getElementById('closeLessonModal').addEventListener('click', closeLessonModal);
+document.getElementById('cancelLessonBtn').addEventListener('click', closeLessonModal);
+document.getElementById('closeCourseModal').addEventListener('click', closeCourseModal);
+document.getElementById('cancelCourseBtn').addEventListener('click', closeCourseModal);
+
+// Close on overlay click
+document.getElementById('modalLesson').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeLessonModal();
+});
+document.getElementById('modalCourse').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeCourseModal();
+});
+
+// Save course
+document.getElementById('courseForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const id = document.getElementById('courseId').value;
+  const data = {
+    name:    document.getElementById('courseName').value.trim(),
+    teacher: document.getElementById('courseTeacher').value.trim(),
+    color:   getSelectedColor(),
+  };
+
+  if (id) {
+    const idx = courses.findIndex(c => c.id === id);
+    courses[idx] = { ...courses[idx], ...data };
+  } else {
+    courses.push({ id: uid(), ...data });
+  }
+
+  save();
+  closeCourseModal();
+  renderCourses();
+});
+
+// Delete course
+document.getElementById('deleteCourseBtn').addEventListener('click', () => {
+  const id = document.getElementById('courseId').value;
+  if (!confirm('Kurs und alle zugehörigen Stunden löschen?')) return;
+  courses  = courses.filter(c => c.id !== id);
+  lessons  = lessons.filter(l => l.courseId !== id);
+  save();
+  closeCourseModal();
+  renderCourses();
+  renderTimetable();
+});
+
+// Save lesson
+document.getElementById('lessonForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const id = document.getElementById('lessonId').value;
+  const data = {
+    courseId: document.getElementById('lessonCourse').value,
+    day:      Number(document.getElementById('lessonDay').value),
+    start:    document.getElementById('lessonStart').value,
+    end:      document.getElementById('lessonEnd').value,
+    room:     document.getElementById('lessonRoom').value.trim(),
+  };
+
+  if (timeToMinutes(data.end) <= timeToMinutes(data.start)) {
+    alert('Die Endzeit muss nach der Startzeit liegen.');
+    return;
+  }
+
+  if (id) {
+    const idx = lessons.findIndex(l => l.id === id);
+    lessons[idx] = { id, ...data };
+  } else {
+    lessons.push({ id: uid(), ...data });
+  }
+
+  save();
+  closeLessonModal();
+  renderTimetable();
+});
+
+// Delete lesson
+document.getElementById('deleteLessonBtn').addEventListener('click', () => {
+  const id = document.getElementById('lessonId').value;
+  lessons = lessons.filter(l => l.id !== id);
+  save();
+  closeLessonModal();
+  renderTimetable();
+});
+
+// ── Init ──
+renderTimetable();
