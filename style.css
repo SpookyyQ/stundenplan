@@ -584,6 +584,26 @@ body {
   max-width: 480px;
 }
 
+.semester-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+}
+
+.semester-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.semester-date {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
 .settings-section-title {
   font-size: 15px;
   font-weight: 700;
