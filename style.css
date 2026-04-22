@@ -567,6 +567,31 @@ body {
   transition: transform 0.15s, border-color 0.15s;
 }
 
+/* ── Toggle ── */
+.toggle-row {
+  display: flex;
+  gap: 8px;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.toggle-btn.active {
+  background: rgba(124,106,255,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .color-dot:hover { transform: scale(1.15); }
 .color-dot.selected { border-color: #fff; transform: scale(1.15); }
 
