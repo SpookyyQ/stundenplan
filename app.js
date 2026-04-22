@@ -167,6 +167,15 @@ function save() {
 // ── ID generator ──
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
+// ── Contrast helper ──
+function textColor(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  const luminance = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return luminance > 0.55 ? '#1a1a23' : '#ffffff';
+}
+
 // ── Week helpers ──
 function getMonday(offset = 0) {
   const d = new Date();
@@ -300,13 +309,15 @@ function renderTimetable() {
       card.style.top    = lessonTop(lesson.start) + 'px';
       card.style.height = Math.max(lessonHeight(lesson.start, lesson.end), 28) + 'px';
       card.style.background = course.color;
+      const tc = textColor(course.color);
+      card.style.color = tc;
 
       const room = lesson.room || course.room || '';
       card.innerHTML = `
         <div class="lesson-name">${course.name}</div>
-        <div class="lesson-time">${lesson.start} – ${lesson.end}</div>
-        ${room ? `<div class="lesson-room">${room}</div>` : ''}
-        ${course.teacher ? `<div class="lesson-teacher">${course.teacher}</div>` : ''}
+        <div class="lesson-time" style="color:${tc};opacity:0.7">${lesson.start} – ${lesson.end}</div>
+        ${room ? `<div class="lesson-room" style="color:${tc};opacity:0.6">${room}</div>` : ''}
+        ${course.teacher ? `<div class="lesson-teacher" style="color:${tc};opacity:0.6">${course.teacher}</div>` : ''}
       `;
 
       card.addEventListener('click', () => openLessonModal(lesson.id));
