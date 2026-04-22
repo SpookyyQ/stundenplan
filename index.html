@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <link rel="stylesheet" href="style.css?v=20260422235022" />
+  <link rel="stylesheet" href="style.css?v=20260422235519" />
 </head>
 <body>
   <!-- Login Screen -->
@@ -48,6 +48,10 @@
         <button class="nav-btn" data-view="exams">
           <span class="nav-icon">✎</span>
           <span>Klausuren</span>
+        </button>
+        <button class="nav-btn" data-view="mensa">
+          <span class="nav-icon">◍</span>
+          <span>Mensa</span>
         </button>
         <button class="nav-btn" data-view="settings">
           <span class="nav-icon">⚙</span>
@@ -157,6 +161,22 @@
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- Mensa View -->
+      <section class="view" id="view-mensa">
+        <header class="main-header">
+          <div class="header-left">
+            <h1>Mensa HTW Saarbrücken</h1>
+            <p class="subtitle" id="mensaDate">Speiseplan wird geladen…</p>
+          </div>
+          <div class="header-right">
+            <button class="btn-secondary" id="mensaPrev">‹</button>
+            <button class="btn-secondary" id="mensaToday">Heute</button>
+            <button class="btn-secondary" id="mensaNext">›</button>
+          </div>
+        </header>
+        <div class="mensa-list" id="mensaList"></div>
       </section>
 
       <!-- Exams View -->
@@ -339,6 +359,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260422235022"></script>
+  <script src="app.js?v=20260422235519"></script>
 </body>
 </html>

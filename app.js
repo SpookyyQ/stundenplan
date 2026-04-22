@@ -550,6 +550,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     if (btn.dataset.view === 'courses')   renderCourses();
     if (btn.dataset.view === 'settings')  renderSettings();
     if (btn.dataset.view === 'exams')     renderExams();
+    if (btn.dataset.view === 'mensa')     { mensaOffset = 0; fetchMensa(mensaLocalISO(0)); }
   });
 });
 
@@ -982,6 +983,54 @@ function renderNowNext() {
   }
   el.innerHTML = html;
 }
+
+// ── Mensa ──
+let mensaOffset = 0;
+
+function mensaLocalISO(offset = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+async function fetchMensa(dateISO) {
+  const list = document.getElementById('mensaList');
+  const sub  = document.getElementById('mensaDate');
+  list.innerHTML = '<div class="mensa-closed">Laden…</div>';
+
+  const d = new Date(dateISO + 'T12:00:00');
+  sub.textContent = d.toLocaleDateString('de-DE', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+
+  try {
+    const res  = await fetch(`https://openmensa.org/api/v2/canteens/828/days/${dateISO}/meals`);
+    if (!res.ok) throw new Error();
+    const meals = await res.json();
+
+    if (!meals || meals.length === 0) {
+      list.innerHTML = '<div class="mensa-closed">Heute geschlossen oder kein Speiseplan verfügbar.</div>';
+      return;
+    }
+
+    list.innerHTML = meals.map(m => {
+      const price = m.prices?.students ? `${m.prices.students.toFixed(2).replace('.',',')} €` : '–';
+      const notes = (m.notes || []).slice(0, 5);
+      return `<div class="mensa-card">
+        <div class="mensa-card-left">
+          <div class="mensa-category">${m.category}</div>
+          <div class="mensa-name">${m.name}</div>
+          ${notes.length ? `<div class="mensa-notes">${notes.map(n=>`<span class="mensa-note-tag">${n}</span>`).join('')}</div>` : ''}
+        </div>
+        <div class="mensa-price">${price}</div>
+      </div>`;
+    }).join('');
+  } catch {
+    list.innerHTML = '<div class="mensa-closed">Speiseplan konnte nicht geladen werden.</div>';
+  }
+}
+
+document.getElementById('mensaToday').addEventListener('click', () => { mensaOffset = 0; fetchMensa(mensaLocalISO(0)); });
+document.getElementById('mensaPrev').addEventListener('click',  () => { mensaOffset--; fetchMensa(mensaLocalISO(mensaOffset)); });
+document.getElementById('mensaNext').addEventListener('click',  () => { mensaOffset++; fetchMensa(mensaLocalISO(mensaOffset)); });
 
 // ── Weather ──
 const WMO = {

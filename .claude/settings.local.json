@@ -15,7 +15,18 @@
       "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" api repos/SpookyyQ/stundenplan/pages --method POST --field source='{\"branch\":\"master\",\"path\":\"/\"}' 2>&1)",
       "Bash(git push *)",
       "Bash(node *)",
-      "WebFetch(domain:uiverse.io)"
+      "WebFetch(domain:uiverse.io)",
+      "WebFetch(domain:mensaar.de)",
+      "Bash(curl -s \"https://mensaar.de/api/2/menu/htwcrb/de/1\")",
+      "Bash(curl -s \"https://mensaar.de/api/2/htwcrb/de/1\")",
+      "Bash(curl -s \"https://mensaar.de/api/2/menu/htwcrb\")",
+      "Bash(curl -s \"https://mensaar.de/api/menu/htwcrb\")",
+      "Bash(curl -s \"https://mensaar.de/api/htwcrb\")",
+      "Bash(curl -s \"https://mensaar.de/api/2/htwcrb\")",
+      "Bash(curl -s -H \"Accept: application/json\" \"https://mensaar.de/api/2/menus/htwcrb\")",
+      "Bash(curl -s \"https://mensaar.de/api/2/restaurants/htwcrb/menus\")",
+      "WebSearch",
+      "WebFetch(domain:openmensa.org)"
     ]
   }
 }
