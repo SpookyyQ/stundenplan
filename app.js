@@ -369,9 +369,9 @@ function renderTimetable() {
       card.className = 'lesson-card';
       card.style.top    = lessonTop(lesson.start) + 'px';
       card.style.height = Math.max(lessonHeight(lesson.start, lesson.end), 28) + 'px';
-      card.style.left   = leftPct + '%';
-      card.style.right  = 'unset';
-      card.style.width  = numCols > 1 ? `calc(${widthPct}% - 4px)` : '';
+      card.style.left  = leftPct + '%';
+      card.style.right = numCols > 1 ? 'unset' : '0';
+      card.style.width = numCols > 1 ? `calc(${widthPct}% - 4px)` : '';
       const dark = darkenHex(course.color, 0.5);
       card.style.background = `linear-gradient(135deg, ${course.color} 0%, ${dark} 100%)`;
       const tc = textColor(course.color);
