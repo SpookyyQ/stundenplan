@@ -167,13 +167,20 @@ function save() {
 // ── ID generator ──
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
-// ── Contrast helper ──
+// ── Color helpers ──
 function textColor(hex) {
   const r = parseInt(hex.slice(1,3),16);
   const g = parseInt(hex.slice(3,5),16);
   const b = parseInt(hex.slice(5,7),16);
   const luminance = (0.299*r + 0.587*g + 0.114*b) / 255;
-  return luminance > 0.55 ? '#1a1a23' : '#ffffff';
+  return luminance > 0.45 ? '#1a1a23' : '#ffffff';
+}
+
+function darkenHex(hex, amount = 0.45) {
+  const r = Math.round(parseInt(hex.slice(1,3),16) * (1 - amount));
+  const g = Math.round(parseInt(hex.slice(3,5),16) * (1 - amount));
+  const b = Math.round(parseInt(hex.slice(5,7),16) * (1 - amount));
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
 }
 
 // ── Week helpers ──
@@ -308,7 +315,8 @@ function renderTimetable() {
       card.className = 'lesson-card';
       card.style.top    = lessonTop(lesson.start) + 'px';
       card.style.height = Math.max(lessonHeight(lesson.start, lesson.end), 28) + 'px';
-      card.style.background = course.color;
+      const dark = darkenHex(course.color, 0.5);
+      card.style.background = `linear-gradient(135deg, ${course.color} 0%, ${dark} 100%)`;
       const tc = textColor(course.color);
       card.style.color = tc;
 
