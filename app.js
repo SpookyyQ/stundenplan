@@ -363,7 +363,14 @@ function renderCourses() {
   }
 
   courses.forEach(course => {
-    const count = lessons.filter(l => l.courseId === course.id).length;
+    const courseLessons = lessons.filter(l => l.courseId === course.id);
+    const weekly = courseLessons.filter(l => !l.date).length;
+    const once   = courseLessons.filter(l =>  l.date).length;
+    let lessonInfo = '';
+    if (weekly && once)  lessonInfo = `${weekly}× wöchentlich + ${once} Einzeltermin${once !== 1 ? 'e' : ''}`;
+    else if (weekly)     lessonInfo = `${weekly}× pro Woche`;
+    else if (once)       lessonInfo = `${once} Einzeltermin${once !== 1 ? 'e' : ''}`;
+
     const card = document.createElement('div');
     card.className = 'course-card';
     card.innerHTML = `
@@ -371,7 +378,7 @@ function renderCourses() {
       <div class="course-card-name">${course.name}</div>
       ${course.teacher ? `<div class="course-card-teacher">${course.teacher}</div>` : ''}
       ${course.room ? `<div class="course-card-teacher">${course.room}</div>` : ''}
-      <div class="course-card-lessons">${count} Stunde${count !== 1 ? 'n' : ''} pro Woche</div>
+      ${lessonInfo ? `<div class="course-card-lessons">${lessonInfo}</div>` : ''}
     `;
     card.addEventListener('click', () => openCourseModal(course.id));
     grid.appendChild(card);
