@@ -10,6 +10,16 @@ const PRESET_HASH      = 'f23438f7ff64fde18744272250bbf1957d65f351c3105649520187
 const PRESET_FIRSTNAME = 'Jason';
 const PRESET_LASTNAME  = 'Bedranowsky';
 
+const SEMESTER_END = '2026-07-17';
+
+const PRESET_COURSES = [
+  { id: 'c_kommunikation', name: 'Kommunikation', teacher: 'Frau Seeliger', room: 'A1 06', color: '#6adfff' }
+];
+
+const PRESET_LESSONS = [
+  { id: 'l_komm_tue', courseId: 'c_kommunikation', day: 1, start: '08:15', end: '09:45', room: '' }
+];
+
 function seedDefaults() {
   if (!localStorage.getItem('sp_pw_hash')) {
     localStorage.setItem('sp_pw_hash',   PRESET_HASH);
@@ -20,6 +30,26 @@ function seedDefaults() {
   if (!localStorage.getItem('sp_lastName')) {
     localStorage.setItem('sp_lastName',  PRESET_LASTNAME);
   }
+  if (!localStorage.getItem('sp_semester_end')) {
+    localStorage.setItem('sp_semester_end', SEMESTER_END);
+  }
+  // Seed courses if none exist
+  const existingCourses = JSON.parse(localStorage.getItem('sp_courses') || '[]');
+  PRESET_COURSES.forEach(pc => {
+    if (!existingCourses.find(c => c.id === pc.id)) {
+      existingCourses.push(pc);
+    }
+  });
+  localStorage.setItem('sp_courses', JSON.stringify(existingCourses));
+
+  // Seed lessons if none exist
+  const existingLessons = JSON.parse(localStorage.getItem('sp_lessons') || '[]');
+  PRESET_LESSONS.forEach(pl => {
+    if (!existingLessons.find(l => l.id === pl.id)) {
+      existingLessons.push(pl);
+    }
+  });
+  localStorage.setItem('sp_lessons', JSON.stringify(existingLessons));
 }
 
 async function initAuth() {
@@ -97,10 +127,15 @@ const COLORS = [
   '#ff6a6a', '#c46aff', '#6a9eff', '#ffea6a', '#ff9e6a'
 ];
 
-// ── State ──
-let courses  = JSON.parse(localStorage.getItem('sp_courses')  || '[]');
-let lessons  = JSON.parse(localStorage.getItem('sp_lessons')  || '[]');
+// ── State ── (loaded after seedDefaults runs)
+let courses  = [];
+let lessons  = [];
 let weekOffset = 0;
+
+function loadState() {
+  courses = JSON.parse(localStorage.getItem('sp_courses') || '[]');
+  lessons = JSON.parse(localStorage.getItem('sp_lessons') || '[]');
+}
 
 // ── Greeting ──
 function getGreeting() {
@@ -413,6 +448,12 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 function renderSettings() {
   document.getElementById('settingsFirstName').value = localStorage.getItem('sp_firstName') || '';
   document.getElementById('settingsLastName').value  = localStorage.getItem('sp_lastName')  || '';
+  const end = localStorage.getItem('sp_semester_end');
+  if (end) {
+    const d = new Date(end);
+    document.getElementById('semesterEndDisplay').textContent =
+      d.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
 }
 
 document.getElementById('saveSettings').addEventListener('click', () => {
@@ -528,6 +569,7 @@ document.getElementById('deleteLessonBtn').addEventListener('click', () => {
 
 // ── Init ──
 function initApp() {
+  loadState();
   updateGreeting();
   renderTimetable();
 }
