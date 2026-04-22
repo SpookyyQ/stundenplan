@@ -18,7 +18,8 @@ const PRESET_COURSES = [
   { id: 'c_statistik2',      name: 'Statistik 2',      teacher: 'Frau Pulham',  room: 'A E 14', color: '#c46aff' },
   { id: 'c_b2b',        name: 'B2B Marketing', teacher: 'Herr Steffen', room: 'A 1 05', color: '#6aff9e' },
   { id: 'c_simulation',     name: 'Simulation',       teacher: 'Herr Heß',    room: 'A E 05', color: '#ff9e6a' },
-  { id: 'c_anlage',         name: 'Anlagestrategien', teacher: 'Herr George',  room: 'B-2-06', color: '#ff6a9e' }
+  { id: 'c_anlage',         name: 'Anlagestrategien', teacher: 'Herr George',  room: 'B-2-06', color: '#ff6a9e' },
+  { id: 'c_bizplan',        name: 'Business Planning', teacher: 'Herr George', room: 'D-1-12', color: '#6a9eff' }
 ];
 
 const PRESET_LESSONS = [
@@ -27,6 +28,11 @@ const PRESET_LESSONS = [
   { id: 'l_stat2_thu', courseId: 'c_statistik2', day: 3, start: '11:45', end: '13:15', room: 'B E 07' },
   { id: 'l_b2b_wed', courseId: 'c_b2b',        day: 2, start: '08:15', end: '11:30', room: '', startDate: '2026-05-05' },
   { id: 'l_sim_wed', courseId: 'c_simulation', day: 2, start: '11:45', end: '13:15', room: '' },
+  { id: 'l_biz_1', courseId: 'c_bizplan', day: 3, start: '10:00', end: '11:30', room: '', date: '2026-04-09' },
+  { id: 'l_biz_2', courseId: 'c_bizplan', day: 3, start: '10:00', end: '11:30', room: '', date: '2026-05-07' },
+  { id: 'l_biz_3', courseId: 'c_bizplan', day: 3, start: '10:00', end: '11:30', room: '', date: '2026-05-21' },
+  { id: 'l_biz_4', courseId: 'c_bizplan', day: 3, start: '10:00', end: '11:30', room: '', date: '2026-06-18' },
+  { id: 'l_biz_5', courseId: 'c_bizplan', day: 3, start: '10:00', end: '11:30', room: '', date: '2026-07-09' },
   { id: 'l_anlage_1', courseId: 'c_anlage', day: 1, start: '11:45', end: '13:15', room: '', date: '2026-04-07' },
   { id: 'l_anlage_2', courseId: 'c_anlage', day: 1, start: '11:45', end: '13:15', room: '', date: '2026-05-05' },
   { id: 'l_anlage_3', courseId: 'c_anlage', day: 1, start: '11:45', end: '13:15', room: '', date: '2026-05-19' },
