@@ -300,7 +300,7 @@ function renderTimetable() {
   DAYS.forEach((_, dayIndex) => {
     const colDate = new Date(monday);
     colDate.setDate(colDate.getDate() + dayIndex);
-    const colISO = colDate.toISOString().slice(0, 10);
+    const colISO = `${colDate.getFullYear()}-${String(colDate.getMonth()+1).padStart(2,'0')}-${String(colDate.getDate()).padStart(2,'0')}`;
 
     const wrapper = document.createElement('div');
     wrapper.style.position = 'relative';
@@ -549,7 +549,52 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     if (btn.dataset.view === 'timetable') renderTimetable();
     if (btn.dataset.view === 'courses')   renderCourses();
     if (btn.dataset.view === 'settings')  renderSettings();
+    if (btn.dataset.view === 'exams')     renderExams();
   });
+});
+
+// Exam modal events
+document.getElementById('openAddExam').addEventListener('click', () => openExamModal(null));
+document.getElementById('closeExamModal').addEventListener('click', closeExamModal);
+document.getElementById('cancelExamBtn').addEventListener('click', closeExamModal);
+document.getElementById('modalExam').addEventListener('click', e => { if (e.target === e.currentTarget) closeExamModal(); });
+document.getElementById('toggleKlausur').addEventListener('click', () => setExamType('klausur'));
+document.getElementById('toggleProjekt').addEventListener('click', () => setExamType('projekt'));
+document.getElementById('addMilestone').addEventListener('click', () => {
+  milestones.push({ id: uid(), title: '', date: '' });
+  renderMilestoneInputs();
+});
+
+document.getElementById('examForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const id = document.getElementById('examId').value;
+  const data = {
+    type:     examType,
+    courseId: document.getElementById('examCourse').value,
+    title:    document.getElementById('examTitle').value.trim(),
+    note:     document.getElementById('examNote').value.trim(),
+    ...(examType === 'klausur'
+      ? { date: document.getElementById('examDate').value,
+          time: document.getElementById('examTime').value,
+          room: document.getElementById('examRoom').value.trim() }
+      : { milestones: milestones.filter(m => m.title && m.date) })
+  };
+  if (id) { const i = exams.findIndex(e => e.id === id); exams[i] = { id, ...data }; }
+  else     { exams.push({ id: uid(), ...data }); }
+  saveExams();
+  closeExamModal();
+  renderExams();
+  renderNextExamWidget();
+});
+
+document.getElementById('deleteExamBtn').addEventListener('click', () => {
+  const id = document.getElementById('examId').value;
+  if (!confirm('Eintrag löschen?')) return;
+  exams = exams.filter(e => e.id !== id);
+  saveExams();
+  closeExamModal();
+  renderExams();
+  renderNextExamWidget();
 });
 
 function renderSettings() {
@@ -690,6 +735,202 @@ document.getElementById('deleteLessonBtn').addEventListener('click', () => {
   renderTimetable();
 });
 
+// ── Exams ──
+let exams = JSON.parse(localStorage.getItem('sp_exams') || '[]');
+
+function saveExams() { localStorage.setItem('sp_exams', JSON.stringify(exams)); }
+
+function daysUntil(dateStr) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(dateStr); d.setHours(0,0,0,0);
+  return Math.round((d - today) / 86400000);
+}
+
+function countdownLabel(days) {
+  if (days < 0)  return { text: 'Vorbei', cls: 'past' };
+  if (days === 0) return { text: 'Heute!', cls: 'today' };
+  if (days <= 7)  return { text: `${days}T`, cls: 'soon' };
+  return { text: `${days}T`, cls: '' };
+}
+
+function nextMilestone(exam) {
+  if (exam.type !== 'projekt') return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  return [...exam.milestones]
+    .sort((a,b) => new Date(a.date) - new Date(b.date))
+    .find(m => new Date(m.date) >= today) || null;
+}
+
+function renderExams() {
+  const list = document.getElementById('examsList');
+  list.innerHTML = '';
+
+  if (exams.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div style="font-size:40px">📋</div><p>Noch keine Klausuren oder Projekte eingetragen.</p></div>`;
+    return;
+  }
+
+  // Sort: upcoming first, then past
+  const sorted = [...exams].sort((a, b) => {
+    const da = a.type === 'klausur' ? a.date : (nextMilestone(a)?.date || '9999');
+    const db = b.type === 'klausur' ? b.date : (nextMilestone(b)?.date || '9999');
+    return da.localeCompare(db);
+  });
+
+  sorted.forEach(exam => {
+    const course = courses.find(c => c.id === exam.courseId);
+    const card = document.createElement('div');
+    card.className = 'exam-card';
+
+    const barColor = course?.color || 'var(--accent)';
+    let dateHtml = '', milestonesHtml = '';
+
+    if (exam.type === 'klausur') {
+      const days = daysUntil(exam.date);
+      const { text, cls } = countdownLabel(days);
+      const dateFormatted = new Date(exam.date).toLocaleDateString('de-DE', { weekday:'short', day:'2-digit', month:'long', year:'numeric' });
+      dateHtml = `<div class="exam-date-row">
+        📅 ${dateFormatted}${exam.time ? ' · ' + exam.time + ' Uhr' : ''}${exam.room ? ' · ' + exam.room : ''}
+        <span class="exam-countdown ${cls}">${text}</span>
+      </div>`;
+    } else {
+      const ms = [...(exam.milestones||[])].sort((a,b) => a.date.localeCompare(b.date));
+      const next = nextMilestone(exam);
+      milestonesHtml = `<div class="milestone-list">${ms.map(m => {
+        const past = daysUntil(m.date) < 0;
+        const isNext = m.id === next?.id;
+        const dateF = new Date(m.date).toLocaleDateString('de-DE', { day:'2-digit', month:'short' });
+        return `<div class="milestone-item">
+          <div class="milestone-dot ${past?'done':isNext?'next':''}"></div>
+          <span class="milestone-title ${past?'done':''}">${m.title}</span>
+          <span class="milestone-date">${dateF}</span>
+          ${isNext ? '<span class="milestone-next-label">Nächste</span>' : ''}
+        </div>`;
+      }).join('')}</div>`;
+    }
+
+    card.innerHTML = `
+      <div class="exam-card-bar" style="background:${barColor}"></div>
+      <div class="exam-card-inner">
+        <div class="exam-card-header">
+          <div class="exam-card-title">${exam.title}</div>
+          <span class="exam-badge ${exam.type === 'projekt' ? 'projekt' : ''}">${exam.type === 'klausur' ? 'Klausur' : 'Projekt'}</span>
+        </div>
+        <div class="exam-card-course">${course?.name || ''}</div>
+        ${dateHtml}
+        ${milestonesHtml}
+        ${exam.note ? `<div class="exam-card-note">${exam.note}</div>` : ''}
+      </div>`;
+    card.addEventListener('click', () => openExamModal(exam.id));
+    list.appendChild(card);
+  });
+}
+
+function renderNextExamWidget() {
+  const el = document.getElementById('nextExamWidget');
+  if (!el) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  let upcoming = [];
+  exams.forEach(e => {
+    if (e.type === 'klausur') {
+      const d = new Date(e.date); d.setHours(0,0,0,0);
+      if (d >= today) upcoming.push({ title: e.title, date: e.date, days: daysUntil(e.date) });
+    } else {
+      const m = nextMilestone(e);
+      if (m) upcoming.push({ title: `${e.title}: ${m.title}`, date: m.date, days: daysUntil(m.date) });
+    }
+  });
+
+  upcoming.sort((a,b) => a.days - b.days);
+  const next = upcoming[0];
+
+  if (!next) { el.innerHTML = ''; return; }
+
+  const dateF = new Date(next.date).toLocaleDateString('de-DE', { day:'2-digit', month:'short', year:'numeric' });
+  el.innerHTML = `
+    <div class="ne-label">Nächste Prüfung</div>
+    <div class="ne-title">${next.title}</div>
+    <div class="ne-date">${dateF}</div>
+    <div class="ne-days">${next.days === 0 ? 'Heute!' : next.days === 1 ? 'Morgen' : `In ${next.days} Tagen`}</div>`;
+}
+
+// Exam modal
+let examType = 'klausur';
+let milestones = [];
+
+function setExamType(type) {
+  examType = type;
+  document.getElementById('toggleKlausur').classList.toggle('active', type === 'klausur');
+  document.getElementById('toggleProjekt').classList.toggle('active', type === 'projekt');
+  document.getElementById('klausurFields').classList.toggle('hidden', type !== 'klausur');
+  document.getElementById('projektFields').classList.toggle('hidden', type !== 'projekt');
+}
+
+function renderMilestoneInputs() {
+  const container = document.getElementById('milestoneList');
+  container.innerHTML = milestones.map((m, i) => `
+    <div class="milestone-form-row">
+      <input type="text" placeholder="Bezeichnung" value="${m.title}" data-mi="${i}" data-field="title" />
+      <input type="date" value="${m.date}" data-mi="${i}" data-field="date" style="width:130px" />
+      <button type="button" class="milestone-remove" data-mi="${i}">✕</button>
+    </div>`).join('');
+
+  container.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      milestones[inp.dataset.mi][inp.dataset.field] = inp.value;
+    });
+  });
+  container.querySelectorAll('.milestone-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      milestones.splice(Number(btn.dataset.mi), 1);
+      renderMilestoneInputs();
+    });
+  });
+}
+
+function openExamModal(id) {
+  const modal = document.getElementById('modalExam');
+  const select = document.getElementById('examCourse');
+  select.innerHTML = courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+  const deleteBtn = document.getElementById('deleteExamBtn');
+
+  if (id) {
+    const exam = exams.find(e => e.id === id);
+    document.getElementById('modalExamTitle').textContent = 'Bearbeiten';
+    document.getElementById('examId').value = id;
+    document.getElementById('examTitle').value = exam.title;
+    document.getElementById('examCourse').value = exam.courseId;
+    document.getElementById('examNote').value = exam.note || '';
+    setExamType(exam.type);
+    if (exam.type === 'klausur') {
+      document.getElementById('examDate').value = exam.date || '';
+      document.getElementById('examTime').value = exam.time || '';
+      document.getElementById('examRoom').value = exam.room || '';
+    } else {
+      milestones = (exam.milestones || []).map(m => ({...m}));
+      renderMilestoneInputs();
+    }
+    deleteBtn.classList.remove('hidden');
+  } else {
+    document.getElementById('modalExamTitle').textContent = 'Hinzufügen';
+    document.getElementById('examId').value = '';
+    document.getElementById('examTitle').value = '';
+    document.getElementById('examNote').value = '';
+    document.getElementById('examDate').value = '';
+    document.getElementById('examTime').value = '';
+    document.getElementById('examRoom').value = '';
+    milestones = [];
+    setExamType('klausur');
+    renderMilestoneInputs();
+    deleteBtn.classList.add('hidden');
+  }
+  modal.classList.add('open');
+}
+
+function closeExamModal() { document.getElementById('modalExam').classList.remove('open'); }
+
 // ── Now & Next ──
 function renderNowNext() {
   const el = document.getElementById('nowNext');
@@ -698,7 +939,7 @@ function renderNowNext() {
   const now   = new Date();
   const today = now.getDay(); // 0=Sun,1=Mon,...
   const dayIndex = today === 0 ? -1 : today - 1; // Mon=0..Fri=4, weekend=-1
-  const todayISO = now.toISOString().slice(0, 10);
+  const todayISO = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
   const nowMin   = now.getHours() * 60 + now.getMinutes();
 
   const todaysLessons = lessons.filter(l => {
@@ -789,6 +1030,7 @@ function initApp() {
   updateGreeting();
   renderTimetable();
   renderNowNext();
+  renderNextExamWidget();
   fetchWeather();
   setInterval(fetchWeather, 10 * 60 * 1000);
   setInterval(renderNowNext, 60 * 1000);
