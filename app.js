@@ -13,11 +13,16 @@ const PRESET_LASTNAME  = 'Bedranowsky';
 const SEMESTER_END = '2026-07-17';
 
 const PRESET_COURSES = [
-  { id: 'c_kommunikation', name: 'Kommunikation', teacher: 'Frau Seeliger', room: 'A1 06', color: '#6adfff' }
+  { id: 'c_kommunikation',   name: 'Kommunikation',   teacher: 'Frau Seeliger', room: 'A1 06', color: '#6adfff' },
+  { id: 'c_servicelearning', name: 'Service Learning', teacher: 'Herr Schug',   room: '',      color: '#ffb86a' }
 ];
 
 const PRESET_LESSONS = [
-  { id: 'l_komm_tue', courseId: 'c_kommunikation', day: 1, start: '08:15', end: '09:45', room: '' }
+  { id: 'l_komm_tue',  courseId: 'c_kommunikation',   day: 1, start: '08:15', end: '09:45', room: '' },
+  { id: 'l_sl_1', courseId: 'c_servicelearning', day: 0, start: '08:15', end: '09:45', room: 'E-2-02', date: '2026-04-27' },
+  { id: 'l_sl_2', courseId: 'c_servicelearning', day: 0, start: '11:45', end: '14:00', room: 'B-E-07',  date: '2026-05-11' },
+  { id: 'l_sl_3', courseId: 'c_servicelearning', day: 0, start: '13:15', end: '14:15', room: 'Digital', date: '2026-06-08' },
+  { id: 'l_sl_4', courseId: 'c_servicelearning', day: 0, start: '10:00', end: '13:15', room: 'B-E-07',  date: '2026-07-13' }
 ];
 
 function seedDefaults() {
@@ -258,6 +263,10 @@ function renderTimetable() {
 
   // Day columns
   DAYS.forEach((_, dayIndex) => {
+    const colDate = new Date(monday);
+    colDate.setDate(colDate.getDate() + dayIndex);
+    const colISO = colDate.toISOString().slice(0, 10);
+
     const wrapper = document.createElement('div');
     wrapper.style.position = 'relative';
     wrapper.style.minWidth = '130px';
@@ -278,8 +287,10 @@ function renderTimetable() {
     // Total height
     wrapper.style.height = (HOURS.length * HOUR_HEIGHT) + 'px';
 
-    // Lessons for this day
-    const dayLessons = lessons.filter(l => l.day === dayIndex);
+    // Lessons: weekly (no date) OR date-specific matching this column
+    const dayLessons = lessons.filter(l =>
+      l.date ? l.date === colISO : l.day === dayIndex
+    );
     dayLessons.forEach(lesson => {
       const course = courses.find(c => c.id === lesson.courseId);
       if (!course) return;
@@ -392,12 +403,18 @@ function closeCourseModal() {
 }
 
 // ── Lesson modal ──
+function setLessonToggle(isOnce) {
+  document.getElementById('toggleWeekly').classList.toggle('active', !isOnce);
+  document.getElementById('toggleOnce').classList.toggle('active', isOnce);
+  document.getElementById('groupDay').classList.toggle('hidden', isOnce);
+  document.getElementById('groupDate').classList.toggle('hidden', !isOnce);
+}
+
 function openLessonModal(id) {
   const modal = document.getElementById('modalLesson');
   const deleteBtn = document.getElementById('deleteLessonBtn');
   const select = document.getElementById('lessonCourse');
 
-  // Populate course select
   select.innerHTML = courses.map(c =>
     `<option value="${c.id}">${c.name}</option>`
   ).join('');
@@ -412,7 +429,9 @@ function openLessonModal(id) {
     document.getElementById('modalLessonTitle').textContent = 'Stunde bearbeiten';
     document.getElementById('lessonId').value = id;
     select.value = lesson.courseId;
-    document.getElementById('lessonDay').value = lesson.day;
+    setLessonToggle(!!lesson.date);
+    document.getElementById('lessonDay').value = lesson.day ?? 0;
+    document.getElementById('lessonDate').value = lesson.date || '';
     document.getElementById('lessonStart').value = lesson.start;
     document.getElementById('lessonEnd').value = lesson.end;
     document.getElementById('lessonRoom').value = lesson.room || '';
@@ -420,7 +439,9 @@ function openLessonModal(id) {
   } else {
     document.getElementById('modalLessonTitle').textContent = 'Stunde hinzufügen';
     document.getElementById('lessonId').value = '';
+    setLessonToggle(false);
     document.getElementById('lessonDay').value = '0';
+    document.getElementById('lessonDate').value = '';
     document.getElementById('lessonStart').value = '08:00';
     document.getElementById('lessonEnd').value = '09:30';
     document.getElementById('lessonRoom').value = '';
@@ -486,6 +507,10 @@ document.getElementById('cancelLessonBtn').addEventListener('click', closeLesson
 document.getElementById('closeCourseModal').addEventListener('click', closeCourseModal);
 document.getElementById('cancelCourseBtn').addEventListener('click', closeCourseModal);
 
+// Toggle weekly/once
+document.getElementById('toggleWeekly').addEventListener('click', () => setLessonToggle(false));
+document.getElementById('toggleOnce').addEventListener('click',   () => setLessonToggle(true));
+
 // Close on overlay click
 document.getElementById('modalLesson').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeLessonModal();
@@ -532,13 +557,24 @@ document.getElementById('deleteCourseBtn').addEventListener('click', () => {
 // Save lesson
 document.getElementById('lessonForm').addEventListener('submit', e => {
   e.preventDefault();
-  const id = document.getElementById('lessonId').value;
+  const id     = document.getElementById('lessonId').value;
+  const isOnce = document.getElementById('toggleOnce').classList.contains('active');
+  const dateVal = document.getElementById('lessonDate').value;
+
+  if (isOnce && !dateVal) {
+    alert('Bitte ein Datum auswählen.');
+    return;
+  }
+
   const data = {
     courseId: document.getElementById('lessonCourse').value,
-    day:      Number(document.getElementById('lessonDay').value),
     start:    document.getElementById('lessonStart').value,
     end:      document.getElementById('lessonEnd').value,
     room:     document.getElementById('lessonRoom').value.trim(),
+    ...(isOnce
+      ? { date: dateVal, day: new Date(dateVal).getDay() === 0 ? 6 : new Date(dateVal).getDay() - 1 }
+      : { day: Number(document.getElementById('lessonDay').value) }
+    )
   };
 
   if (timeToMinutes(data.end) <= timeToMinutes(data.start)) {
