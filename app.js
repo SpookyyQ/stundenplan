@@ -229,10 +229,11 @@ function renderTimetable() {
       card.style.height = Math.max(lessonHeight(lesson.start, lesson.end), 28) + 'px';
       card.style.background = course.color;
 
+      const room = lesson.room || course.room || '';
       card.innerHTML = `
         <div class="lesson-name">${course.name}</div>
         <div class="lesson-time">${lesson.start} – ${lesson.end}</div>
-        ${lesson.room ? `<div class="lesson-room">${lesson.room}</div>` : ''}
+        ${room ? `<div class="lesson-room">${room}</div>` : ''}
         ${course.teacher ? `<div class="lesson-teacher">${course.teacher}</div>` : ''}
       `;
 
@@ -268,6 +269,7 @@ function renderCourses() {
       <div class="course-card-bar" style="background:${course.color}"></div>
       <div class="course-card-name">${course.name}</div>
       ${course.teacher ? `<div class="course-card-teacher">${course.teacher}</div>` : ''}
+      ${course.room ? `<div class="course-card-teacher">${course.room}</div>` : ''}
       <div class="course-card-lessons">${count} Stunde${count !== 1 ? 'n' : ''} pro Woche</div>
     `;
     card.addEventListener('click', () => openCourseModal(course.id));
@@ -308,6 +310,7 @@ function openCourseModal(id) {
     document.getElementById('courseId').value = id;
     document.getElementById('courseName').value = course.name;
     document.getElementById('courseTeacher').value = course.teacher || '';
+    document.getElementById('courseRoom').value = course.room || '';
     buildColorPicker(course.color);
     deleteBtn.classList.remove('hidden');
   } else {
@@ -315,6 +318,7 @@ function openCourseModal(id) {
     document.getElementById('courseId').value = '';
     document.getElementById('courseName').value = '';
     document.getElementById('courseTeacher').value = '';
+    document.getElementById('courseRoom').value = '';
     buildColorPicker(COLORS[courses.length % COLORS.length]);
     deleteBtn.classList.add('hidden');
   }
@@ -414,6 +418,7 @@ document.getElementById('courseForm').addEventListener('submit', e => {
   const data = {
     name:    document.getElementById('courseName').value.trim(),
     teacher: document.getElementById('courseTeacher').value.trim(),
+    room:    document.getElementById('courseRoom').value.trim(),
     color:   getSelectedColor(),
   };
 
