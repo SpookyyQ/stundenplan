@@ -104,82 +104,146 @@ body {
   gap: 8px;
 }
 
-/* ── Weather Card (uiverse style) ── */
+/* ── Weather Card (uiverse by mahiatlinux – adapted) ── */
 .cardm {
-  border-radius: 12px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  margin-bottom: 8px;
+}
+
+.card {
+  position: absolute;
+  width: 188px;
+  height: 100px;
+  border-radius: 20px;
+  background: #1e1e1e;
+  color: #ffffff;
+  z-index: 2;
+  transition: 0.4s ease-in-out;
   overflow: hidden;
-  font-size: 12px;
 }
 
-.wcard {
-  background: linear-gradient(135deg, #0a0020 0%, #1a0a6e 55%, #3a18b0 100%);
-  padding: 14px 14px 10px;
-  text-align: center;
-  color: #fff;
+.card:hover {
+  background-color: #3a3a3a;
+  cursor: pointer;
 }
 
-.w-icon-wrap {
-  font-size: 36px;
+.card:hover + .card2 {
+  height: 220px;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+
+.card:hover + .card2 .lower {
+  top: 14em;
+}
+
+.weather {
+  position: relative;
+  margin: 0.6em 0 0 0.6em;
+  font-size: 2em;
   line-height: 1;
-  margin-bottom: 4px;
 }
 
-.w-temp {
-  font-size: 26px;
+.main {
+  font-size: 1.5em;
+  position: relative;
+  top: -2.1em;
+  left: 3.4em;
   font-weight: 700;
-  letter-spacing: -0.5px;
 }
 
-.w-city {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
+.mainsub {
+  position: relative;
+  top: -7.8em;
+  left: 9.5em;
+  font-size: 0.55em;
   color: rgba(255,255,255,0.6);
-  margin-top: 2px;
+  white-space: nowrap;
 }
 
-.w-desc {
-  font-size: 11px;
-  color: rgba(255,255,255,0.5);
-  margin-top: 2px;
-}
-
-.wcard2 {
-  background: #12122a;
-  padding: 10px 10px;
+.card2 {
+  position: absolute;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row;
+  width: 184px;
+  height: 100px;
+  border-radius: 26px;
+  background: #2d2d2d;
+  z-index: 1;
+  transition: 0.4s ease-in-out;
+  top: 0;
+  overflow: hidden;
 }
 
-.w-row {
+.upper {
   display: flex;
-  gap: 6px;
+  flex-direction: row;
+  position: absolute;
+  color: #ffffff;
+  left: 1em;
+  top: 0.4em;
+  gap: 2.5em;
 }
 
-.w-stat {
-  flex: 1;
-  background: rgba(124,106,255,0.12);
-  border-radius: 8px;
-  padding: 7px 6px 5px;
-  text-align: center;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.w-stat-icon {
+.stat-emoji {
+  font-size: 1.5em;
   display: block;
-  font-size: 14px;
-  margin-bottom: 1px;
+  text-align: center;
+  margin-top: 1.8em;
 }
 
-.w-stat-label {
-  font-size: 9px;
-  color: rgba(255,255,255,0.45);
-  font-weight: 400;
-  margin-top: 1px;
+.humiditytext, .airtext {
+  position: relative;
+  top: 0.3em;
+  font-size: 0.6em;
+  text-align: center;
+}
+
+.lower {
+  display: flex;
+  flex-direction: row;
+  position: absolute;
+  text-align: center;
+  color: #ffffff;
+  left: 1.8em;
+  top: 1em;
+  margin-top: 0.7em;
+  font-size: 0.7em;
+  transition: 0.4s ease-in-out;
+  gap: 2em;
+}
+
+.realfeel, .pressure {
+  text-align: center;
+}
+
+.realfeeltext, .pressuretext {
+  font-size: 0.85em;
+  text-align: center;
+}
+
+.card3 {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 184px;
+  height: 24px;
+  top: 3.5em;
+  left: -1.8em;
+  font-size: 1em;
+  border-bottom-left-radius: 26px;
+  border-bottom-right-radius: 26px;
+  background: #7c6aff;
+  color: #fff;
+  font-size: 0.7em;
+  font-weight: 600;
+  transition: 0.4s ease-in-out;
 }
 
 .current-week {
