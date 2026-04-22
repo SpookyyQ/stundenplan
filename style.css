@@ -489,29 +489,29 @@ body {
 }
 
 .lesson-name {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #fff;
 }
 
 .lesson-time {
-  font-size: 10px;
-  color: rgba(255,255,255,0.65);
-  margin-top: 2px;
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 3px;
 }
 
 .lesson-room {
-  font-size: 10px;
-  color: rgba(255,255,255,0.55);
-  margin-top: 1px;
+  font-size: 11px;
+  opacity: 0.65;
+  margin-top: 2px;
 }
 
 .lesson-teacher {
-  font-size: 10px;
-  color: rgba(255,255,255,0.55);
+  font-size: 11px;
+  opacity: 0.65;
+  margin-top: 1px;
 }
 
 /* ── Courses Grid ── */
