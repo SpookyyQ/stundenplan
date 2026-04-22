@@ -46,6 +46,10 @@
           <span class="nav-icon">✦</span>
           <span>Kurse</span>
         </button>
+        <button class="nav-btn" data-view="settings">
+          <span class="nav-icon">⚙</span>
+          <span>Einstellungen</span>
+        </button>
       </nav>
       <div class="sidebar-footer">
         <div class="current-week">
@@ -66,7 +70,7 @@
       <section class="view active" id="view-timetable">
         <header class="main-header">
           <div class="header-left">
-            <h1>Wochenplan</h1>
+            <h1 id="greetingText">Wochenplan</h1>
             <p class="subtitle" id="weekRange"></p>
           </div>
           <div class="header-right">
@@ -92,6 +96,33 @@
           </div>
         </header>
         <div class="courses-grid" id="coursesGrid"></div>
+      </section>
+
+      <!-- Settings View -->
+      <section class="view" id="view-settings">
+        <header class="main-header">
+          <div class="header-left">
+            <h1>Einstellungen</h1>
+            <p class="subtitle">Persönliche Angaben</p>
+          </div>
+        </header>
+        <div class="settings-body">
+          <div class="settings-card">
+            <h2 class="settings-section-title">Profil</h2>
+            <div class="form-group">
+              <label>Vorname</label>
+              <input type="text" id="settingsFirstName" placeholder="z.B. Max" />
+            </div>
+            <div class="form-group">
+              <label>Nachname</label>
+              <input type="text" id="settingsLastName" placeholder="z.B. Mustermann" />
+            </div>
+            <div class="form-actions">
+              <div class="spacer"></div>
+              <button class="btn-primary" id="saveSettings">Speichern</button>
+            </div>
+          </div>
+        </div>
       </section>
 
     </main>
