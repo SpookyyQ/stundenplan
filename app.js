@@ -622,6 +622,58 @@ document.getElementById('deleteLessonBtn').addEventListener('click', () => {
   renderTimetable();
 });
 
+// ── Now & Next ──
+function renderNowNext() {
+  const el = document.getElementById('nowNext');
+  if (!el) return;
+
+  const now   = new Date();
+  const today = now.getDay(); // 0=Sun,1=Mon,...
+  const dayIndex = today === 0 ? -1 : today - 1; // Mon=0..Fri=4, weekend=-1
+  const todayISO = now.toISOString().slice(0, 10);
+  const nowMin   = now.getHours() * 60 + now.getMinutes();
+
+  const todaysLessons = lessons.filter(l => {
+    if (l.date) return l.date === todayISO;
+    return l.day === dayIndex;
+  }).sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
+
+  const current = todaysLessons.find(l =>
+    timeToMinutes(l.start) <= nowMin && nowMin < timeToMinutes(l.end)
+  );
+  const next = todaysLessons.find(l => timeToMinutes(l.start) > nowMin);
+
+  if (!current && !next) {
+    el.innerHTML = dayIndex === -1
+      ? `<div class="nn-empty">Wochenende 🎉</div>`
+      : `<div class="nn-empty">Keine weiteren<br>Stunden heute</div>`;
+    return;
+  }
+
+  let html = '';
+  if (current) {
+    const course = courses.find(c => c.id === current.courseId);
+    const room   = current.room || course?.room || '';
+    html += `
+      <div class="nn-card is-now">
+        <div class="nn-label">Jetzt</div>
+        <div class="nn-name">${course?.name || '–'}</div>
+        <div class="nn-time">${current.start}–${current.end}${room ? ' · ' + room : ''}</div>
+      </div>`;
+  }
+  if (next) {
+    const course = courses.find(c => c.id === next.courseId);
+    const room   = next.room || course?.room || '';
+    html += `
+      <div class="nn-card">
+        <div class="nn-label">Als nächstes</div>
+        <div class="nn-name">${course?.name || '–'}</div>
+        <div class="nn-time">${next.start}–${next.end}${room ? ' · ' + room : ''}</div>
+      </div>`;
+  }
+  el.innerHTML = html;
+}
+
 // ── Weather ──
 const WMO = {
   0:'☀️',1:'🌤',2:'⛅',3:'☁️',
@@ -668,8 +720,10 @@ function initApp() {
   loadState();
   updateGreeting();
   renderTimetable();
+  renderNowNext();
   fetchWeather();
-  setInterval(fetchWeather, 10 * 60 * 1000); // refresh every 10 min
+  setInterval(fetchWeather, 10 * 60 * 1000);
+  setInterval(renderNowNext, 60 * 1000);
 }
 
 initAuth().then(() => {
