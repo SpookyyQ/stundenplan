@@ -570,6 +570,67 @@ body {
 .color-dot:hover { transform: scale(1.15); }
 .color-dot.selected { border-color: #fff; transform: scale(1.15); }
 
+/* ── Login ── */
+.login-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.login-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: var(--shadow);
+  animation: modalIn 0.25s ease;
+}
+
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.login-logo .logo-icon { font-size: 24px; color: var(--accent); }
+.login-logo .logo-text { font-size: 20px; font-weight: 700; }
+
+.login-sub {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 28px;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.login-error {
+  color: #ff6060;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.hidden { display: none !important; }
+
+/* Logout button */
+.logout-btn {
+  margin-top: 10px;
+  color: var(--text-muted);
+}
+
+.logout-btn:hover { color: #ff6060; background: rgba(255,96,96,0.1); }
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .sidebar { width: 64px; min-width: 64px; padding: 20px 8px; }

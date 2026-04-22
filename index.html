@@ -7,7 +7,30 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app">
+  <!-- Login Screen -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-box">
+      <div class="login-logo">
+        <span class="logo-icon">◈</span>
+        <span class="logo-text">Stundenplan</span>
+      </div>
+      <p class="login-sub" id="loginSub">Willkommen! Bitte melde dich an.</p>
+      <form id="loginForm">
+        <div class="form-group">
+          <label id="loginLabel">Matrikelnummer</label>
+          <input type="password" id="loginPassword" placeholder="Matrikelnummer eingeben" required autocomplete="current-password" />
+        </div>
+        <div class="form-group hidden" id="confirmGroup">
+          <label>Matrikelnummer bestätigen</label>
+          <input type="password" id="loginConfirm" placeholder="Matrikelnummer wiederholen" autocomplete="new-password" />
+        </div>
+        <p class="login-error hidden" id="loginError"></p>
+        <button type="submit" class="btn-primary login-btn" id="loginBtn">Anmelden</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="app" id="appRoot" style="display:none">
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-logo">
@@ -29,6 +52,10 @@
           <span class="week-label">KW</span>
           <span class="week-number" id="weekNumber"></span>
         </div>
+        <button class="nav-btn logout-btn" id="logoutBtn">
+          <span class="nav-icon">⏻</span>
+          <span>Abmelden</span>
+        </button>
       </div>
     </aside>
 
