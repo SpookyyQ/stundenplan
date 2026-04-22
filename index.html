@@ -48,34 +48,22 @@
         </button>
       </nav>
       <div class="sidebar-footer">
-        <div class="cardm">
+        <div class="cardContainer">
           <div class="card">
-            <div class="weather" id="wIcon">☀️</div>
-            <div class="main"><span id="wTemp">–</span> °C</div>
-            <div class="mainsub">Saarbrücken</div>
-          </div>
-          <div class="card2">
-            <div class="upper">
-              <div class="humidity">
-                <span class="stat-emoji">💧</span>
-                <div class="humiditytext">Feuchte<br /><span id="wHumidity">–</span>%</div>
+            <p class="city">SAARBRÜCKEN</p>
+            <p class="weather" id="wDesc">Laden…</p>
+            <div class="wIconEmoji" id="wIcon">⋯</div>
+            <p class="temp"><span id="wTemp">–</span>°</p>
+            <div class="minmaxContainer">
+              <div class="min">
+                <p class="minHeading">Min</p>
+                <p class="minTemp"><span id="wMin">–</span>°</p>
               </div>
-              <div class="air">
-                <span class="stat-emoji">💨</span>
-                <div class="airtext">Wind<br /><span id="wWind">–</span> km/h</div>
-              </div>
-            </div>
-            <div class="lower">
-              <div class="realfeel">
-                <span class="stat-emoji">🌡</span>
-                <div class="realfeeltext">Gefühlt<br /><span id="wFeels">–</span>°C</div>
-              </div>
-              <div class="pressure">
-                <span class="stat-emoji">📊</span>
-                <div class="pressuretext">Druck<br /><span id="wPressure">–</span> hPa</div>
+              <div class="max">
+                <p class="maxHeading">Max</p>
+                <p class="maxTemp"><span id="wMax">–</span>°</p>
               </div>
             </div>
-            <div class="card3" id="wDesc">Laden…</div>
           </div>
         </div>
         <div class="current-week">

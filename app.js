@@ -646,22 +646,18 @@ const WMO_DESC = {
 async function fetchWeather() {
   try {
     const url = 'https://api.open-meteo.com/v1/forecast?latitude=49.24&longitude=6.99' +
-      '&current=temperature_2m,apparent_temperature,weathercode,windspeed_10m,relativehumidity_2m,surface_pressure' +
+      '&current=temperature_2m,weathercode' +
+      '&daily=temperature_2m_max,temperature_2m_min' +
       '&timezone=Europe%2FBerlin';
     const res  = await fetch(url);
     const data = await res.json();
     const c = data.current;
-    document.getElementById('wTemp').textContent     = Math.round(c.temperature_2m);
-    document.getElementById('wIcon').textContent     = WMO[c.weathercode]      || '🌡';
-    document.getElementById('wDesc').textContent     = WMO_DESC[c.weathercode] || '';
-    document.getElementById('wHumidity').textContent = c.relativehumidity_2m;
-    document.getElementById('wWind').textContent     = Math.round(c.windspeed_10m);
-    document.getElementById('wFeels').textContent    = Math.round(c.apparent_temperature);
-    document.getElementById('wPressure').textContent = Math.round(c.surface_pressure);
-    // card3 colour by temperature feel
-    const feels = c.apparent_temperature;
-    const card3 = document.querySelector('.card3');
-    if (card3) card3.style.background = feels < 5 ? '#4a90d9' : feels < 18 ? '#7c6aff' : '#2ecc71';
+    const d = data.daily;
+    document.getElementById('wTemp').textContent = Math.round(c.temperature_2m);
+    document.getElementById('wIcon').textContent = WMO[c.weathercode] || '🌡';
+    document.getElementById('wDesc').textContent = WMO_DESC[c.weathercode] || '';
+    document.getElementById('wMin').textContent  = Math.round(d.temperature_2m_min[0]);
+    document.getElementById('wMax').textContent  = Math.round(d.temperature_2m_max[0]);
   } catch {
     document.getElementById('wDesc').textContent = 'Keine Verbindung';
   }
