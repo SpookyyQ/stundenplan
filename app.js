@@ -1011,7 +1011,13 @@ async function fetchMensa(dateISO) {
       return;
     }
 
-    list.innerHTML = meals.map(m => {
+    const filtered = meals.filter(m => m.name.trim().toLowerCase() !== 'tagesaktuell');
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="mensa-closed">Heute geschlossen oder kein Speiseplan verfügbar.</div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(m => {
       const price = m.prices?.students ? `${m.prices.students.toFixed(2).replace('.',',')} €` : '–';
       const notes = (m.notes || []).slice(0, 5);
       return `<div class="mensa-card">
