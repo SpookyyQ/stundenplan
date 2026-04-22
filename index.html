@@ -42,6 +42,10 @@
           <span class="nav-icon">✦</span>
           <span>Kurse</span>
         </button>
+        <button class="nav-btn" data-view="exams">
+          <span class="nav-icon">📋</span>
+          <span>Klausuren</span>
+        </button>
         <button class="nav-btn" data-view="settings">
           <span class="nav-icon">⚙</span>
           <span>Einstellungen</span>
@@ -49,6 +53,8 @@
       </nav>
       <!-- Now & Next -->
       <div class="now-next" id="nowNext"></div>
+      <!-- Next exam/milestone -->
+      <div class="next-exam" id="nextExamWidget"></div>
 
       <div class="sidebar-footer">
         <div class="cardContainer">
@@ -150,7 +156,87 @@
         </div>
       </section>
 
+      <!-- Exams View -->
+      <section class="view" id="view-exams">
+        <header class="main-header">
+          <div class="header-left">
+            <h1>Klausuren & Projekte</h1>
+            <p class="subtitle">Prüfungen und Abgaben im Überblick</p>
+          </div>
+          <div class="header-right">
+            <button class="btn-primary" id="openAddExam">+ Hinzufügen</button>
+          </div>
+        </header>
+        <div class="exams-list" id="examsList"></div>
+      </section>
+
     </main>
+  </div>
+
+  <!-- Modal: Klausur / Projekt -->
+  <div class="modal-overlay" id="modalExam">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalExamTitle">Hinzufügen</h2>
+        <button class="modal-close" id="closeExamModal">✕</button>
+      </div>
+      <form id="examForm">
+        <input type="hidden" id="examId" />
+        <div class="form-group">
+          <label>Typ</label>
+          <div class="toggle-row">
+            <button type="button" class="toggle-btn active" id="toggleKlausur">Klausur</button>
+            <button type="button" class="toggle-btn" id="toggleProjekt">Projekt</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Kurs</label>
+          <select id="examCourse" required></select>
+        </div>
+        <div class="form-group">
+          <label>Bezeichnung</label>
+          <input type="text" id="examTitle" placeholder="z.B. Klausur Statistik 2" required />
+        </div>
+
+        <!-- Klausur fields -->
+        <div id="klausurFields">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Datum</label>
+              <input type="date" id="examDate" />
+            </div>
+            <div class="form-group">
+              <label>Uhrzeit <span class="optional">(optional)</span></label>
+              <input type="time" id="examTime" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Raum <span class="optional">(optional)</span></label>
+            <input type="text" id="examRoom" placeholder="z.B. Aula" />
+          </div>
+        </div>
+
+        <!-- Projekt fields -->
+        <div id="projektFields" class="hidden">
+          <div class="form-group">
+            <label>Meilensteine</label>
+            <div id="milestoneList"></div>
+            <button type="button" class="btn-secondary" id="addMilestone" style="margin-top:8px;width:100%">+ Meilenstein hinzufügen</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Notiz <span class="optional">(optional)</span></label>
+          <input type="text" id="examNote" placeholder="z.B. Zugelassene Hilfsmittel..." />
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-danger hidden" id="deleteExamBtn">Löschen</button>
+          <div class="spacer"></div>
+          <button type="button" class="btn-secondary" id="cancelExamBtn">Abbrechen</button>
+          <button type="submit" class="btn-primary">Speichern</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- Modal: Stunde hinzufügen -->
