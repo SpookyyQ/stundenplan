@@ -104,146 +104,111 @@ body {
   gap: 8px;
 }
 
-/* ── Weather Card (uiverse by mahiatlinux – adapted) ── */
-.cardm {
+/* ── Weather Card (uiverse by vinodjangid07 – adapted) ── */
+.cardContainer {
+  width: fit-content;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100px;
   margin-bottom: 8px;
 }
 
-.card {
+.cardContainer::before {
+  width: 80px;
+  height: 80px;
+  content: "";
   position: absolute;
+  background-color: rgb(124, 106, 255);
+  z-index: 0;
+  border-radius: 50%;
+  left: 70px;
+  top: 30px;
+  transition: all 1s;
+  filter: blur(2px);
+  opacity: 0.5;
+}
+
+.cardContainer:hover::before {
+  transform: translate(-40px, 40px);
+}
+
+.card {
+  position: relative;
   width: 188px;
-  height: 100px;
-  border-radius: 20px;
-  background: #1e1e1e;
-  color: #ffffff;
-  z-index: 2;
-  transition: 0.4s ease-in-out;
-  overflow: hidden;
-}
-
-.card:hover {
-  background-color: #3a3a3a;
+  height: 230px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 10px;
+  border-radius: 10px;
+  backdrop-filter: blur(30px);
+  background-color: rgba(65, 65, 65, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   cursor: pointer;
+  z-index: 1;
 }
 
-.card:hover + .card2 {
-  height: 220px;
-  border-bottom-left-radius: 0px;
-  border-bottom-right-radius: 0px;
-}
-
-.card:hover + .card2 .lower {
-  top: 14em;
+.city {
+  font-weight: 700;
+  font-size: 0.8em;
+  letter-spacing: 1.2px;
+  color: white;
 }
 
 .weather {
-  position: relative;
-  margin: 0.6em 0 0 0.6em;
-  font-size: 2em;
+  font-weight: 500;
+  font-size: 0.65em;
+  letter-spacing: 1px;
+  color: rgb(197, 197, 197);
+  text-align: center;
+}
+
+.wIconEmoji {
+  font-size: 2.8em;
   line-height: 1;
 }
 
-.main {
-  font-size: 1.5em;
-  position: relative;
-  top: -2.1em;
-  left: 3.4em;
-  font-weight: 700;
-}
-
-.mainsub {
-  position: relative;
-  top: -7.8em;
-  left: 9.5em;
-  font-size: 0.55em;
-  color: rgba(255,255,255,0.6);
-  white-space: nowrap;
-}
-
-.card2 {
-  position: absolute;
-  display: flex;
-  flex-direction: row;
-  width: 184px;
-  height: 100px;
-  border-radius: 26px;
-  background: #2d2d2d;
-  z-index: 1;
-  transition: 0.4s ease-in-out;
-  top: 0;
-  overflow: hidden;
-}
-
-.upper {
-  display: flex;
-  flex-direction: row;
-  position: absolute;
-  color: #ffffff;
-  left: 1em;
-  top: 0.4em;
-  gap: 2.5em;
-}
-
-.stat-emoji {
-  font-size: 1.5em;
-  display: block;
-  text-align: center;
-  margin-top: 1.8em;
-}
-
-.humiditytext, .airtext {
-  position: relative;
-  top: 0.3em;
-  font-size: 0.6em;
-  text-align: center;
-}
-
-.lower {
-  display: flex;
-  flex-direction: row;
-  position: absolute;
-  text-align: center;
-  color: #ffffff;
-  left: 1.8em;
-  top: 1em;
-  margin-top: 0.7em;
-  font-size: 0.7em;
-  transition: 0.4s ease-in-out;
-  gap: 2em;
-}
-
-.realfeel, .pressure {
-  text-align: center;
-}
-
-.realfeeltext, .pressuretext {
-  font-size: 0.85em;
-  text-align: center;
-}
-
-.card3 {
-  position: absolute;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  width: 184px;
-  height: 24px;
-  top: 3.5em;
-  left: -1.8em;
-  font-size: 1em;
-  border-bottom-left-radius: 26px;
-  border-bottom-right-radius: 26px;
-  background: #7c6aff;
-  color: #fff;
-  font-size: 0.7em;
+.temp {
+  font-size: 1.8em;
+  color: white;
   font-weight: 600;
-  transition: 0.4s ease-in-out;
+  margin: 0;
+}
+
+.minmaxContainer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.min, .max {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 16px;
+  gap: 3px;
+}
+
+.max {
+  align-items: flex-start;
+  border-left: 2px solid rgba(255,255,255,0.4);
+}
+
+.maxHeading, .minHeading {
+  font-size: 0.65em;
+  font-weight: 600;
+  color: white;
+}
+
+.maxTemp, .minTemp {
+  font-size: 0.6em;
+  font-weight: 500;
+  color: rgb(197, 197, 197);
 }
 
 .current-week {
