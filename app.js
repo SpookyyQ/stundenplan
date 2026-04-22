@@ -142,9 +142,9 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 
 // ── Constants ──
 const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
-const HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 07:00–20:00
+const HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 08:00–20:00
 const HOUR_HEIGHT = 72; // px, must match CSS --hour-height
-const DAY_START = 7;    // 07:00
+const DAY_START = 8;    // 08:00
 
 const COLORS = [
   '#7c6aff', '#ff6a9e', '#6adfff', '#6aff9e', '#ffb86a',
