@@ -614,11 +614,54 @@ document.getElementById('deleteLessonBtn').addEventListener('click', () => {
   renderTimetable();
 });
 
+// ── Weather ──
+const WMO = {
+  0:'☀️',1:'🌤',2:'⛅',3:'☁️',
+  45:'🌫',48:'🌫',
+  51:'🌦',53:'🌦',55:'🌧',
+  61:'🌧',63:'🌧',65:'🌧',
+  71:'🌨',73:'🌨',75:'❄️',
+  80:'🌦',81:'🌧',82:'⛈',
+  95:'⛈',96:'⛈',99:'⛈'
+};
+
+const WMO_DESC = {
+  0:'Klar',1:'Meist klar',2:'Teilbewölkt',3:'Bewölkt',
+  45:'Nebel',48:'Nebel',
+  51:'Leichter Nieselregen',53:'Nieselregen',55:'Starker Nieselregen',
+  61:'Leichter Regen',63:'Regen',65:'Starker Regen',
+  71:'Leichter Schnee',73:'Schnee',75:'Starker Schnee',
+  80:'Schauer',81:'Starke Schauer',82:'Gewitter',
+  95:'Gewitter',96:'Gewitter',99:'Schweres Gewitter'
+};
+
+async function fetchWeather() {
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=49.24&longitude=6.99' +
+      '&current=temperature_2m,apparent_temperature,weathercode,windspeed_10m,relativehumidity_2m,surface_pressure' +
+      '&timezone=Europe%2FBerlin';
+    const res  = await fetch(url);
+    const data = await res.json();
+    const c = data.current;
+    document.getElementById('wTemp').textContent     = Math.round(c.temperature_2m);
+    document.getElementById('wIcon').textContent     = WMO[c.weathercode] || '🌡';
+    document.getElementById('wDesc').textContent     = WMO_DESC[c.weathercode] || '';
+    document.getElementById('wHumidity').textContent = c.relativehumidity_2m;
+    document.getElementById('wWind').textContent     = Math.round(c.windspeed_10m);
+    document.getElementById('wFeels').textContent    = Math.round(c.apparent_temperature);
+    document.getElementById('wPressure').textContent = Math.round(c.surface_pressure);
+  } catch {
+    document.getElementById('wDesc').textContent = 'Keine Verbindung';
+  }
+}
+
 // ── Init ──
 function initApp() {
   loadState();
   updateGreeting();
   renderTimetable();
+  fetchWeather();
+  setInterval(fetchWeather, 10 * 60 * 1000); // refresh every 10 min
 }
 
 initAuth().then(() => {

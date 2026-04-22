@@ -99,6 +99,87 @@ body {
 
 .sidebar-footer {
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Weather Card (uiverse style) ── */
+.cardm {
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+.wcard {
+  background: linear-gradient(135deg, #0a0020 0%, #1a0a6e 55%, #3a18b0 100%);
+  padding: 14px 14px 10px;
+  text-align: center;
+  color: #fff;
+}
+
+.w-icon-wrap {
+  font-size: 36px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.w-temp {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.w-city {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 2px;
+}
+
+.w-desc {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 2px;
+}
+
+.wcard2 {
+  background: #12122a;
+  padding: 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.w-row {
+  display: flex;
+  gap: 6px;
+}
+
+.w-stat {
+  flex: 1;
+  background: rgba(124,106,255,0.12);
+  border-radius: 8px;
+  padding: 7px 6px 5px;
+  text-align: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.w-stat-icon {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 1px;
+}
+
+.w-stat-label {
+  font-size: 9px;
+  color: rgba(255,255,255,0.45);
+  font-weight: 400;
+  margin-top: 1px;
 }
 
 .current-week {
