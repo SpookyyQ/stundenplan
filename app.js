@@ -331,8 +331,10 @@ function renderTimetable() {
     });
     // Assign columns to handle overlaps (Google Calendar style)
     const sorted = [...dayLessons].sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
-    const cols = []; // cols[i] = end time of last lesson in column i
-    const lessonCol = new Map();
+    const cols = [];
+    const lessonCol    = new Map();
+    const lessonNumCols = new Map();
+
     sorted.forEach(l => {
       const start = timeToMinutes(l.start);
       let placed = false;
@@ -341,14 +343,26 @@ function renderTimetable() {
       }
       if (!placed) { lessonCol.set(l.id, cols.length); cols.push(timeToMinutes(l.end)); }
     });
-    const totalCols = cols.length || 1;
+
+    // Per-lesson numCols = max column among all overlapping lessons + 1
+    sorted.forEach(l => {
+      const s = timeToMinutes(l.start), e = timeToMinutes(l.end);
+      let maxCol = lessonCol.get(l.id);
+      sorted.forEach(o => {
+        if (o.id === l.id) return;
+        if (timeToMinutes(o.start) < e && timeToMinutes(o.end) > s)
+          maxCol = Math.max(maxCol, lessonCol.get(o.id));
+      });
+      lessonNumCols.set(l.id, maxCol + 1);
+    });
 
     sorted.forEach(lesson => {
       const course = courses.find(c => c.id === lesson.courseId);
       if (!course) return;
 
       const col      = lessonCol.get(lesson.id) ?? 0;
-      const widthPct = 100 / totalCols;
+      const numCols  = lessonNumCols.get(lesson.id) ?? 1;
+      const widthPct = 100 / numCols;
       const leftPct  = col * widthPct;
 
       const card = document.createElement('div');
@@ -357,7 +371,7 @@ function renderTimetable() {
       card.style.height = Math.max(lessonHeight(lesson.start, lesson.end), 28) + 'px';
       card.style.left   = leftPct + '%';
       card.style.right  = 'unset';
-      card.style.width  = `calc(${widthPct}% - 4px)`;
+      card.style.width  = numCols > 1 ? `calc(${widthPct}% - 4px)` : '';
       const dark = darkenHex(course.color, 0.5);
       card.style.background = `linear-gradient(135deg, ${course.color} 0%, ${dark} 100%)`;
       const tc = textColor(course.color);
