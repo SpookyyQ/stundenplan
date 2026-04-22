@@ -6,7 +6,24 @@ async function sha256(text) {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+const PRESET_HASH      = 'f23438f7ff64fde18744272250bbf1957d65f351c3105649520187f31fc1718d';
+const PRESET_FIRSTNAME = 'Jason';
+const PRESET_LASTNAME  = 'Bedranowsky';
+
+function seedDefaults() {
+  if (!localStorage.getItem('sp_pw_hash')) {
+    localStorage.setItem('sp_pw_hash',   PRESET_HASH);
+  }
+  if (!localStorage.getItem('sp_firstName')) {
+    localStorage.setItem('sp_firstName', PRESET_FIRSTNAME);
+  }
+  if (!localStorage.getItem('sp_lastName')) {
+    localStorage.setItem('sp_lastName',  PRESET_LASTNAME);
+  }
+}
+
 async function initAuth() {
+  seedDefaults();
   const loginScreen = document.getElementById('loginScreen');
   const appRoot     = document.getElementById('appRoot');
   const loginForm   = document.getElementById('loginForm');
@@ -18,14 +35,7 @@ async function initAuth() {
   const loginConfirm = document.getElementById('loginConfirm');
 
   const storedHash = localStorage.getItem('sp_pw_hash');
-  const isSetup = !storedHash;
-
-  if (isSetup) {
-    loginSub.textContent = 'Erster Start – lege deine Matrikelnummer als Zugangscode fest.';
-    loginLabel.textContent = 'Matrikelnummer festlegen';
-    confirmGroup.classList.remove('hidden');
-    loginBtn.textContent = 'Zugangscode setzen';
-  }
+  const isSetup = false; // password is pre-configured
 
   if (sessionStorage.getItem('sp_authed') === '1') {
     loginScreen.style.display = 'none';
@@ -91,6 +101,22 @@ const COLORS = [
 let courses  = JSON.parse(localStorage.getItem('sp_courses')  || '[]');
 let lessons  = JSON.parse(localStorage.getItem('sp_lessons')  || '[]');
 let weekOffset = 0;
+
+// ── Greeting ──
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Guten Morgen';
+  if (h < 18) return 'Guten Tag';
+  return 'Guten Abend';
+}
+
+function updateGreeting() {
+  const firstName = localStorage.getItem('sp_firstName') || '';
+  const lastName  = localStorage.getItem('sp_lastName')  || '';
+  const name = [firstName, lastName].filter(Boolean).join(' ');
+  const el = document.getElementById('greetingText');
+  if (el) el.textContent = name ? `${getGreeting()}, ${name}` : 'Wochenplan';
+}
 
 // ── Persistence ──
 function save() {
@@ -376,10 +402,26 @@ function closeLessonModal() {
 // ── Event listeners ──
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    if (!btn.dataset.view) return;
     showView(btn.dataset.view);
     if (btn.dataset.view === 'timetable') renderTimetable();
     if (btn.dataset.view === 'courses')   renderCourses();
+    if (btn.dataset.view === 'settings')  renderSettings();
   });
+});
+
+function renderSettings() {
+  document.getElementById('settingsFirstName').value = localStorage.getItem('sp_firstName') || '';
+  document.getElementById('settingsLastName').value  = localStorage.getItem('sp_lastName')  || '';
+}
+
+document.getElementById('saveSettings').addEventListener('click', () => {
+  localStorage.setItem('sp_firstName', document.getElementById('settingsFirstName').value.trim());
+  localStorage.setItem('sp_lastName',  document.getElementById('settingsLastName').value.trim());
+  updateGreeting();
+  const btn = document.getElementById('saveSettings');
+  btn.textContent = 'Gespeichert ✓';
+  setTimeout(() => { btn.textContent = 'Speichern'; }, 1800);
 });
 
 // Navigation
@@ -486,6 +528,7 @@ document.getElementById('deleteLessonBtn').addEventListener('click', () => {
 
 // ── Init ──
 function initApp() {
+  updateGreeting();
   renderTimetable();
 }
 
