@@ -1344,6 +1344,238 @@ body {
 :root.light-mode .login-logo-icon,
 :root.light-mode .form-login { color: var(--text); }
 
+/* ── Group ── */
+.nav-btn-group { position: relative; }
+
+.group-badge {
+  position: absolute;
+  top: 6px; right: 6px;
+  background: var(--accent2);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.group-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 480px;
+}
+
+.group-error {
+  font-size: 12px;
+  color: #ff6a6a;
+  margin-top: 8px;
+  min-height: 16px;
+}
+
+.group-content { max-width: 480px; }
+
+.group-invite-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.group-info-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.group-invite-code {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--accent);
+}
+
+.group-members, .group-requests {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.group-member-row, .group-request-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.group-member-row[data-userid]:hover { background: var(--border); }
+
+.group-member-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.group-member-info { flex: 1; min-width: 0; }
+
+.group-member-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.group-member-role {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.group-member-badge {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text-muted);
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.group-accept-btn, .group-reject-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.group-pending {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+  gap: 8px;
+}
+
+.group-pending-icon { font-size: 40px; }
+.group-pending-text { font-size: 16px; font-weight: 700; color: var(--text); }
+.group-pending-sub { font-size: 13px; color: var(--text-muted); }
+
+/* ── Member Overlay ── */
+.member-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+
+.member-overlay.active { transform: translateX(0); }
+
+.member-overlay-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.member-overlay-header h2 {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.member-week-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.member-schedule {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 32px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.member-day-header {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.member-lesson {
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+}
+
+.member-lesson-time {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+
+.member-lesson-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.member-lesson-room {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.member-day-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 8px 0;
+}
+
+/* Hide group button on mobile/tablet */
+@media (max-width: 1024px) {
+  .nav-btn-group { display: none; }
+}
+
 /* ── Credits ── */
 .settings-credits {
   display: flex;

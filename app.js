@@ -1023,7 +1023,311 @@ function handleNavClick(view) {
   if (view === 'settings')  renderSettings();
   if (view === 'exams')     renderExams();
   if (view === 'mensa')     { mensaOffset = 0; fetchMensa(mensaLocalISO(0)); }
+  if (view === 'group')     { loadGroup().then(() => { renderGroup(); updateGroupBadge(); }); }
 }
+
+// ── Group ──
+let myGroup = null;
+let myGroupStatus = null; // 'creator' | 'accepted' | 'pending' | null
+let groupMembers = [];
+
+async function loadGroup() {
+  const { data: membership } = await sb.from('group_members')
+    .select('*, groups(*)')
+    .eq('user_id', currentUser.id)
+    .order('joined_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!membership) { myGroup = null; myGroupStatus = null; groupMembers = []; return; }
+
+  myGroup = membership.groups;
+  myGroupStatus = myGroup.creator_id === currentUser.id ? 'creator' : membership.status;
+
+  if (myGroupStatus !== 'pending') {
+    const { data: members } = await sb.from('group_members').select('*').eq('group_id', myGroup.id);
+    const userIds = (members || []).map(m => m.user_id);
+    if (userIds.length > 0) {
+      const { data: profiles } = await sb.from('profiles').select('*').in('id', userIds);
+      groupMembers = members.map(m => ({ ...m, profile: (profiles || []).find(p => p.id === m.user_id) || {} }));
+    } else {
+      groupMembers = [];
+    }
+  }
+}
+
+async function createGroup(name) {
+  const { data: group, error } = await sb.from('groups')
+    .insert({ name, creator_id: currentUser.id })
+    .select().single();
+  if (error) throw error;
+  await sb.from('group_members').insert({ group_id: group.id, user_id: currentUser.id, status: 'accepted' });
+  myGroup = group; myGroupStatus = 'creator'; groupMembers = [];
+}
+
+async function joinGroup(code) {
+  const { data: group, error } = await sb.from('groups')
+    .select('id, name, creator_id, invite_code')
+    .eq('invite_code', code.toUpperCase())
+    .maybeSingle();
+  if (error || !group) throw new Error('Gruppe nicht gefunden');
+  if (group.creator_id === currentUser.id) throw new Error('Das ist deine eigene Gruppe');
+  const { error: iErr } = await sb.from('group_members')
+    .insert({ group_id: group.id, user_id: currentUser.id, status: 'pending' });
+  if (iErr) {
+    if (iErr.code === '23505') throw new Error('Anfrage bereits gesendet');
+    throw iErr;
+  }
+  myGroup = group; myGroupStatus = 'pending'; groupMembers = [];
+}
+
+function updateGroupBadge() {
+  const badge = document.getElementById('groupNavBadge');
+  if (!badge) return;
+  const n = myGroupStatus === 'creator' ? groupMembers.filter(m => m.status === 'pending').length : 0;
+  badge.textContent = n;
+  badge.style.display = n > 0 ? 'flex' : 'none';
+}
+
+function renderGroup() {
+  const body = document.getElementById('groupBody');
+  const sub  = document.getElementById('groupSubtitle');
+
+  if (!myGroup) {
+    sub.textContent = 'Erstelle oder tritt einer Gruppe bei';
+    body.innerHTML = `
+      <div class="group-setup">
+        <div class="settings-card">
+          <h2 class="settings-section-title">Neue Gruppe erstellen</h2>
+          <div class="form-group">
+            <label>Gruppenname</label>
+            <input type="text" id="newGroupName" placeholder="z.B. WI Semester 6" />
+          </div>
+          <div class="form-actions"><div class="spacer"></div>
+            <button class="btn-primary" id="createGroupBtn">Erstellen</button>
+          </div>
+          <p class="group-error" id="createGroupError"></p>
+        </div>
+        <div class="settings-card">
+          <h2 class="settings-section-title">Gruppe beitreten</h2>
+          <div class="form-group">
+            <label>Einladungscode</label>
+            <input type="text" id="joinGroupCode" placeholder="z.B. ABC123" maxlength="6" style="text-transform:uppercase;letter-spacing:2px" />
+          </div>
+          <div class="form-actions"><div class="spacer"></div>
+            <button class="btn-primary" id="joinGroupBtn">Beitreten</button>
+          </div>
+          <p class="group-error" id="joinGroupError"></p>
+        </div>
+      </div>`;
+
+    document.getElementById('createGroupBtn').addEventListener('click', async () => {
+      const name = document.getElementById('newGroupName').value.trim();
+      if (!name) return;
+      try {
+        await createGroup(name); renderGroup(); updateGroupBadge();
+      } catch(e) { document.getElementById('createGroupError').textContent = e.message; }
+    });
+
+    document.getElementById('joinGroupBtn').addEventListener('click', async () => {
+      const code = document.getElementById('joinGroupCode').value.trim();
+      if (!code) return;
+      try {
+        await joinGroup(code); renderGroup();
+      } catch(e) { document.getElementById('joinGroupError').textContent = e.message; }
+    });
+    return;
+  }
+
+  if (myGroupStatus === 'pending') {
+    sub.textContent = myGroup.name;
+    body.innerHTML = `
+      <div class="group-pending">
+        <div class="group-pending-icon">⏳</div>
+        <div class="group-pending-text">Beitritt ausstehend</div>
+        <div class="group-pending-sub">Der Gruppenersteller muss deinen Beitritt noch bestätigen.</div>
+        <button class="btn-secondary" id="cancelJoinBtn" style="margin-top:20px">Anfrage zurückziehen</button>
+      </div>`;
+    document.getElementById('cancelJoinBtn').addEventListener('click', async () => {
+      await sb.from('group_members').delete().eq('group_id', myGroup.id).eq('user_id', currentUser.id);
+      myGroup = null; myGroupStatus = null; groupMembers = [];
+      renderGroup();
+    });
+    return;
+  }
+
+  const isCreator = myGroupStatus === 'creator';
+  const accepted  = groupMembers.filter(m => m.status === 'accepted');
+  const pending   = groupMembers.filter(m => m.status === 'pending');
+  sub.textContent  = myGroup.name;
+
+  let html = '<div class="group-content">';
+
+  if (isCreator) {
+    html += `<div class="settings-card">
+      <div class="group-invite-row">
+        <div>
+          <div class="group-info-label">Einladungscode</div>
+          <div class="group-invite-code">${myGroup.invite_code}</div>
+        </div>
+        <button class="btn-secondary" id="copyInviteBtn">Kopieren</button>
+      </div>
+    </div>`;
+  }
+
+  if (isCreator && pending.length > 0) {
+    html += `<div class="settings-card" style="margin-top:16px">
+      <h2 class="settings-section-title">Beitrittsanfragen (${pending.length})</h2>
+      <div class="group-requests">
+        ${pending.map(m => {
+          const name = `${m.profile.first_name || ''} ${m.profile.last_name || ''}`.trim() || '?';
+          const init = (m.profile.first_name?.[0] || '?').toUpperCase();
+          return `<div class="group-request-row">
+            <div class="group-member-avatar">${init}</div>
+            <div class="group-member-info"><div class="group-member-name">${name}</div></div>
+            <button class="btn-primary group-accept-btn" data-id="${m.id}">✓ Annehmen</button>
+            <button class="btn-secondary group-reject-btn" data-id="${m.id}">✕</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  html += `<div class="settings-card" style="margin-top:16px">
+    <h2 class="settings-section-title">Mitglieder (${accepted.length})</h2>
+    <div class="group-members">
+      ${accepted.map(m => {
+        const isMe = m.user_id === currentUser.id;
+        const name = `${m.profile.first_name || ''} ${m.profile.last_name || ''}`.trim() || 'Unbekannt';
+        const init = (m.profile.first_name?.[0] || '?').toUpperCase();
+        const isOwner = myGroup.creator_id === m.user_id;
+        return `<div class="group-member-row" ${!isMe ? `data-userid="${m.user_id}" data-name="${name}" style="cursor:pointer"` : ''}>
+          <div class="group-member-avatar" style="${isOwner ? '' : 'background:var(--accent2);opacity:1'}">${init}</div>
+          <div class="group-member-info">
+            <div class="group-member-name">${name}</div>
+            <div class="group-member-role">${isMe ? 'Du' : isOwner ? 'Gruppenersteller' : 'Stundenplan ansehen →'}</div>
+          </div>
+          ${isMe ? '<span class="group-member-badge">Du</span>' : ''}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  const leaveLabel = isCreator ? 'Gruppe auflösen' : 'Gruppe verlassen';
+  html += `<div style="margin-top:16px">
+    <button class="btn-secondary" id="leaveGroupBtn" style="color:#ff6a6a">${leaveLabel}</button>
+  </div></div>`;
+
+  body.innerHTML = html;
+
+  document.getElementById('copyInviteBtn')?.addEventListener('click', () => {
+    navigator.clipboard.writeText(myGroup.invite_code);
+    const btn = document.getElementById('copyInviteBtn');
+    btn.textContent = 'Kopiert ✓';
+    setTimeout(() => { btn.textContent = 'Kopieren'; }, 2000);
+  });
+
+  document.querySelectorAll('.group-accept-btn').forEach(btn =>
+    btn.addEventListener('click', async () => {
+      await sb.from('group_members').update({ status: 'accepted' }).eq('id', btn.dataset.id);
+      await loadGroup(); renderGroup(); updateGroupBadge();
+    })
+  );
+
+  document.querySelectorAll('.group-reject-btn').forEach(btn =>
+    btn.addEventListener('click', async () => {
+      await sb.from('group_members').delete().eq('id', btn.dataset.id);
+      await loadGroup(); renderGroup(); updateGroupBadge();
+    })
+  );
+
+  document.querySelectorAll('.group-member-row[data-userid]').forEach(row =>
+    row.addEventListener('click', () => openMemberTimetable(row.dataset.userid, row.dataset.name))
+  );
+
+  document.getElementById('leaveGroupBtn').addEventListener('click', async () => {
+    const msg = isCreator ? 'Gruppe wirklich auflösen? Alle Mitglieder werden entfernt.' : 'Gruppe wirklich verlassen?';
+    if (!confirm(msg)) return;
+    if (isCreator) {
+      await sb.from('groups').delete().eq('id', myGroup.id);
+    } else {
+      await sb.from('group_members').delete().eq('group_id', myGroup.id).eq('user_id', currentUser.id);
+    }
+    myGroup = null; myGroupStatus = null; groupMembers = [];
+    renderGroup(); updateGroupBadge();
+  });
+}
+
+// ── Member Timetable Overlay ──
+let memberWeekOffset = 0;
+let memberCoursesCache = [];
+let memberLessonsCache = [];
+
+async function openMemberTimetable(userId, name) {
+  memberWeekOffset = 0;
+  document.getElementById('memberOverlayName').textContent = name;
+  document.getElementById('memberOverlay').classList.add('active');
+  const [{ data: c }, { data: l }] = await Promise.all([
+    sb.from('courses').select('*').eq('user_id', userId),
+    sb.from('lessons').select('*').eq('user_id', userId)
+  ]);
+  memberCoursesCache = c || [];
+  memberLessonsCache = l || [];
+  renderMemberSchedule();
+}
+
+function renderMemberSchedule() {
+  const monday = new Date();
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7) + memberWeekOffset * 7);
+  monday.setHours(0, 0, 0, 0);
+
+  const friday = new Date(monday); friday.setDate(monday.getDate() + 4);
+  const fmt = d => d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+  document.getElementById('memberWeekLabel').textContent = `${fmt(monday)} – ${fmt(friday)}`;
+
+  const days = ['Mo', 'Di', 'Mi', 'Do', 'Fr'];
+  const courseMap = Object.fromEntries(memberCoursesCache.map(c => [c.id, c]));
+  let html = '';
+
+  for (let i = 0; i < 5; i++) {
+    const day = new Date(monday); day.setDate(monday.getDate() + i);
+    const dayISO = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`;
+    const isToday = dayISO === new Date().toISOString().split('T')[0];
+
+    const dayLessons = memberLessonsCache.filter(l => {
+      if (l.date) return l.date === dayISO;
+      if (l.start_date && l.start_date > dayISO) return false;
+      return l.day === i;
+    }).sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+    html += `<div class="member-day">
+      <div class="member-day-header" style="${isToday ? 'color:var(--accent)' : ''}">${days[i]} ${day.getDate()}.${day.getMonth()+1}.</div>`;
+
+    if (dayLessons.length === 0) {
+      html += `<div class="member-day-empty">–</div>`;
+    } else {
+      dayLessons.forEach(l => {
+        const course = courseMap[l.course_id];
+        if (!course) return;
+        const room = l.room || course.room || '';
+        html += `<div class="member-lesson" style="border-left-color:${course.color}">
+          <span class="member-lesson-time">${l.start_time} – ${l.end_time}</span>
+          <span class="member-lesson-name">${course.name}</span>
+          ${room ? `<span class="member-lesson-room">${room}</span>` : ''}
+        </div>`;
+      });
+    }
+    html += `</div>`;
+  }
+
+  document.getElementById('memberSchedule').innerHTML = html;
+}
+
+document.getElementById('closeMemberOverlay').addEventListener('click', () => {
+  document.getElementById('memberOverlay').classList.remove('active');
+});
+document.getElementById('memberPrevWeek').addEventListener('click', () => { memberWeekOffset--; renderMemberSchedule(); });
+document.getElementById('memberNextWeek').addEventListener('click', () => { memberWeekOffset++; renderMemberSchedule(); });
 
 document.querySelectorAll('.nav-btn, .bottom-nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -1582,6 +1886,7 @@ async function initApp() {
   }
 
   await syncAutoExamsForCourses();
+  loadGroup().then(updateGroupBadge);
 
   updateGreeting();
   renderTimetable();
