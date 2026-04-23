@@ -134,7 +134,8 @@ const AUTO_EXAM_TEMPLATES = [
     matchCourseNames: ['b2b marketing'],
     onlyForUsers: [
       { firstName: 'Jason', lastName: 'Bedranowsky' },
-      { firstName: 'Tim', lastName: 'Bellmann' }
+      { firstName: 'Tim', lastName: 'Bellmann' },
+      { firstName: 'Nico', lastName: 'Grasser' }
     ],
     type: 'projekt',
     title: 'B2B Marketing Präsentation',
