@@ -1428,7 +1428,10 @@ body {
   .grid-header, .grid-body { min-width: 600px; }
   .courses-grid { padding: 0 16px 16px; }
   .exams-list { gap: 10px; padding: 0 16px 16px; }
-  .exam-card { padding: 15px 16px; }
+  .exam-card {
+    padding: 13px 14px;
+    overflow: visible;
+  }
   .exam-card-inner { padding-left: 8px; }
   .exam-card-header {
     align-items: flex-start;
@@ -1436,27 +1439,30 @@ body {
   }
   .exam-card-title {
     min-width: 0;
-    font-size: 18px;
-    line-height: 1.2;
+    font-size: 16px;
+    line-height: 1.18;
   }
+  .exam-card-course { font-size: 12px; }
   .exam-badge {
     flex: 0 0 auto;
     font-size: 9px;
     padding: 3px 8px;
   }
   .exam-next-due {
-    grid-template-columns: 1fr;
-    gap: 4px;
-    margin-top: 12px;
-    padding: 10px;
+    grid-template-columns: 1fr auto;
+    gap: 2px 8px;
+    margin-top: 10px;
+    padding: 8px 10px;
   }
+  .exam-next-label { grid-column: 1 / -1; font-size: 9px; }
   .exam-next-title {
-    white-space: normal;
-    font-size: 14px;
-    line-height: 1.25;
+    white-space: nowrap;
+    font-size: 13px;
+    line-height: 1.2;
   }
-  .exam-next-date { font-size: 13px; }
-  .milestone-list { gap: 4px; margin-top: 8px; }
+  .exam-next-date { font-size: 12px; }
+  .exam-card-note,
+  .milestone-list { display: none; }
   .milestone-item {
     display: grid;
     grid-template-columns: 8px 1fr auto;
