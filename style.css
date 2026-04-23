@@ -361,6 +361,21 @@ body {
 
 .btn-secondary:hover { background: var(--border); }
 
+.search-bar {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 14px;
+  font-size: 14px;
+  width: 200px;
+  outline: none;
+  transition: border-color 0.2s, width 0.2s;
+}
+
+.search-bar::placeholder { color: var(--text-muted); }
+.search-bar:focus { border-color: var(--accent); width: 240px; }
+
 .btn-danger {
   background: rgba(255, 80, 80, 0.15);
   color: #ff6060;
@@ -476,6 +491,27 @@ body {
 .lessons-relative {
   position: relative;
   min-width: 130px;
+}
+
+.time-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ff4d4d;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.time-indicator::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff4d4d;
 }
 
 .lesson-card {

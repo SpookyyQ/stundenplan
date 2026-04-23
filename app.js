@@ -40,6 +40,38 @@ const PRESET_LESSONS = [
   { id: 'l_sl_4',      courseId: 'c_servicelearning',  day: 0, start: '10:00', end: '13:15', room: 'B-E-07',  date: '2026-07-13' }
 ];
 
+// ── Search ──
+let searchQuery = '';
+
+function parseSearchDate(q) {
+  const dm = q.match(/^(\d{1,2})\.(\d{1,2})(?:\.(\d{4}))?$/);
+  if (dm) {
+    const year = dm[3] ? parseInt(dm[3]) : new Date().getFullYear();
+    const d = new Date(year, parseInt(dm[2]) - 1, parseInt(dm[1]));
+    if (!isNaN(d)) return d;
+  }
+  const iso = q.match(/^\d{4}-\d{2}-\d{2}$/);
+  if (iso) {
+    const d = new Date(q);
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+
+function handleSearch(q) {
+  searchQuery = q;
+  const date = parseSearchDate(q);
+  if (date) {
+    const currentMonday = getMonday(0);
+    const targetMonday = new Date(date);
+    const day = targetMonday.getDay() || 7;
+    targetMonday.setDate(targetMonday.getDate() - day + 1);
+    targetMonday.setHours(0, 0, 0, 0);
+    weekOffset = Math.round((targetMonday - currentMonday) / (7 * 86400000));
+  }
+  renderTimetable();
+}
+
 // ── State ──
 let currentUser = null;
 let profile     = { firstName: '', lastName: '', semesterEnd: SEMESTER_END };
@@ -322,8 +354,10 @@ function renderTimetable() {
   document.getElementById('weekRange').textContent =
     formatDate(monday) + ' – ' + formatDate(friday);
 
-  const today = new Date();
+  const now = new Date();
+  const today = new Date(now);
   today.setHours(0, 0, 0, 0);
+  const nowMin = now.getHours() * 60 + now.getMinutes();
 
   const grid = document.getElementById('timetableGrid');
   grid.innerHTML = '';
@@ -376,6 +410,13 @@ function renderTimetable() {
     });
     wrapper.appendChild(linesDiv);
     wrapper.style.height = (HOURS.length * HOUR_HEIGHT) + 'px';
+
+    if (colDate.getTime() === today.getTime() && nowMin >= DAY_START * 60 && nowMin < (DAY_START + HOURS.length) * 60) {
+      const indicator = document.createElement('div');
+      indicator.className = 'time-indicator';
+      indicator.style.top = minutesToPx(nowMin - DAY_START * 60) + 'px';
+      wrapper.appendChild(indicator);
+    }
 
     const dayLessons = lessons.filter(l => {
       if (l.date) return l.date === colISO;
@@ -437,6 +478,10 @@ function renderTimetable() {
         ${room ? `<div class="lesson-room" style="color:${tc};opacity:0.6">${room}</div>` : ''}
         ${course.teacher ? `<div class="lesson-teacher" style="color:${tc};opacity:0.6">${course.teacher}</div>` : ''}
       `;
+      if (searchQuery && !parseSearchDate(searchQuery)) {
+        const matches = course.name.toLowerCase().includes(searchQuery.toLowerCase());
+        if (!matches) card.style.opacity = '0.15';
+      }
       card.addEventListener('click', () => openLessonModal(lesson.id));
       wrapper.appendChild(card);
     });
@@ -955,6 +1000,16 @@ function renderNextExamWidget() {
     <div class="ne-days">${next.days === 0 ? 'Heute!' : next.days === 1 ? 'Morgen' : `In ${next.days} Tagen`}</div>`;
 }
 
+function updateTimeIndicator() {
+  const indicator = document.querySelector('.time-indicator');
+  if (!indicator) return;
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  if (nowMin >= DAY_START * 60 && nowMin < (DAY_START + HOURS.length) * 60) {
+    indicator.style.top = minutesToPx(nowMin - DAY_START * 60) + 'px';
+  }
+}
+
 // ── Now & Next ──
 function renderNowNext() {
   const el = document.getElementById('nowNext');
@@ -1113,6 +1168,19 @@ async function initApp() {
   fetchWeather();
   setInterval(fetchWeather, 10 * 60 * 1000);
   setInterval(renderNowNext, 60 * 1000);
+  setInterval(updateTimeIndicator, 60 * 1000);
 }
+
+// ── Search events ──
+document.getElementById('searchBar').addEventListener('input', e => {
+  handleSearch(e.target.value.trim());
+});
+
+document.getElementById('searchBar').addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    e.target.value = '';
+    handleSearch('');
+  }
+});
 
 initAuth();
