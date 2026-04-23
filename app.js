@@ -42,6 +42,17 @@ const SEED_USERS = {
   '5014296': {
     firstName: 'Nico', lastName: 'Grasser',
     courseIds: ['c_kommunikation', 'c_b2b', 'c_servicelearning', 'c_anlage', 'c_bizplan']
+  },
+  '5014124': {
+    firstName: 'Manuel', lastName: 'Diener',
+    courseIds: ['c_statistik2', 'c_anlage', 'c_b2b', 'c_bizplan'],
+    extraCourses: [
+      { id: 'c_thermische_energiesysteme', name: 'Thermische Energiesysteme', teacher: 'Herr Rückert', room: 'E E 06', color: '#ff6a6a' }
+    ],
+    extraLessons: [
+      { id: 'l_therm_tue', courseId: 'c_thermische_energiesysteme', day: 1, start: '14:15', end: '17:30', room: '' }
+    ],
+    groupInviteCode: 'CD09F4'
   }
 };
 
@@ -479,6 +490,14 @@ function buildSeedData(config) {
   };
 }
 
+async function syncSeedGroupMembership(config) {
+  if (!config.groupInviteCode) return;
+  const { error } = await sb.rpc('sync_seed_group_membership', {
+    p_invite_code: config.groupInviteCode.trim().toUpperCase()
+  });
+  if (error) throw error;
+}
+
 // ── Seed preset data (first login only) ──
 async function seedUser(config) {
   const uid = currentUser.id;
@@ -496,6 +515,8 @@ async function seedUser(config) {
       room: l.room || '', date: l.date || null, start_date: l.startDate || null
     }))
   ]);
+
+  await syncSeedGroupMembership(config);
 }
 
 async function syncSeedUserPresets(config) {
@@ -503,18 +524,20 @@ async function syncSeedUserPresets(config) {
   const missingCourses = seed.courses.filter(c => !courses.some(existing => existing.id === c.id));
   const missingLessons = seed.lessons.filter(l => !lessons.some(existing => existing.id === l.id));
 
-  if (missingCourses.length === 0 && missingLessons.length === 0) return;
+  if (missingCourses.length > 0 || missingLessons.length > 0) {
+    const results = await Promise.all([
+      ...missingCourses.map(c => dbUpsertCourse({ ...c, moodleUrl: '' })),
+      ...missingLessons.map(dbUpsertLesson)
+    ]);
 
-  const results = await Promise.all([
-    ...missingCourses.map(c => dbUpsertCourse({ ...c, moodleUrl: '' })),
-    ...missingLessons.map(dbUpsertLesson)
-  ]);
+    const failed = results.find(result => result?.error);
+    if (failed) throw failed.error;
 
-  const failed = results.find(result => result?.error);
-  if (failed) throw failed.error;
+    courses = [...courses, ...missingCourses.map(c => ({ ...c, moodleUrl: '' }))];
+    lessons = [...lessons, ...missingLessons.map(l => ({ ...l }))];
+  }
 
-  courses = [...courses, ...missingCourses.map(c => ({ ...c, moodleUrl: '' }))];
-  lessons = [...lessons, ...missingLessons.map(l => ({ ...l }))];
+  await syncSeedGroupMembership(config);
 }
 
 // ── ID generator ──
@@ -1066,19 +1089,28 @@ async function createGroup(name) {
 }
 
 async function joinGroup(code) {
-  const { data: group, error } = await sb.from('groups')
-    .select('id, name, creator_id, invite_code')
-    .eq('invite_code', code.toUpperCase())
-    .maybeSingle();
-  if (error || !group) throw new Error('Gruppe nicht gefunden');
-  if (group.creator_id === currentUser.id) throw new Error('Das ist deine eigene Gruppe');
-  const { error: iErr } = await sb.from('group_members')
-    .insert({ group_id: group.id, user_id: currentUser.id, status: 'pending', creator_id: group.creator_id });
-  if (iErr) {
-    if (iErr.code === '23505') throw new Error('Anfrage bereits gesendet');
-    throw iErr;
+  const { data, error } = await sb.rpc('join_group_by_invite_code', {
+    p_invite_code: code.trim().toUpperCase()
+  });
+  if (error) {
+    if (error.code === '23505') {
+      if ((error.message || '').toLowerCase().includes('mitglied')) {
+        throw new Error('Du bist bereits in dieser Gruppe');
+      }
+      throw new Error('Anfrage bereits gesendet');
+    }
+    throw new Error(error.message || 'Gruppe nicht gefunden');
   }
-  myGroup = group; myGroupStatus = 'pending'; groupMembers = [];
+  const group = Array.isArray(data) ? data[0] : data;
+  if (!group) throw new Error('Gruppe nicht gefunden');
+  myGroup = {
+    id: group.group_id,
+    name: group.name,
+    creator_id: group.creator_id,
+    invite_code: group.invite_code
+  };
+  myGroupStatus = group.membership_status;
+  groupMembers = [];
 }
 
 function updateGroupBadge() {
