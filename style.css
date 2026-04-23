@@ -59,6 +59,14 @@ body {
   flex-direction: column;
   padding: 28px 16px;
   gap: 32px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
 }
 
 .sidebar-logo {
@@ -1399,6 +1407,20 @@ body {
 /* Hide on desktop */
 @media (min-width: 769px) {
   .bottom-nav { display: none; }
+}
+
+/* ── Short desktop viewports (13"/14" laptops) ── */
+@media (min-width: 1025px) and (max-height: 900px) {
+  .sidebar { padding: 18px 14px; gap: 18px; }
+  .sidebar-nav { gap: 4px; }
+  .nav-btn { padding: 9px 12px; font-size: 13px; }
+  .card { height: 180px; padding: 12px 10px; }
+  .cardContainer::before { width: 60px; height: 60px; top: 20px; left: 60px; }
+  .temp { font-size: 1.5em; }
+  .wIconEmoji { font-size: 2.2em; }
+  .current-week { padding: 6px 12px; }
+  .week-number { font-size: 18px; }
+  .now-next, .sidebar-footer { gap: 6px; }
 }
 
 /* ── Tablet ── */
