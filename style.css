@@ -1235,7 +1235,7 @@ body {
 .bottom-nav { display: none; }
 
 /* ── Tablet ── */
-@media (max-width: 900px) {
+@media (min-width: 769px) and (max-width: 1024px) {
   .sidebar { width: 64px; min-width: 64px; padding: 20px 8px; }
   .logo-text, .nav-btn span:last-child, .week-label { display: none; }
   .sidebar-logo { justify-content: center; }
@@ -1245,7 +1245,7 @@ body {
 }
 
 /* ── Mobile ── */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .sidebar { display: none; }
 
   .bottom-nav {
@@ -1254,6 +1254,7 @@ body {
     background: var(--surface);
     border-top: 1px solid var(--border);
     height: 62px;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .bottom-nav-btn {
@@ -1272,16 +1273,13 @@ body {
     transition: color 0.18s;
   }
 
-  .bottom-nav-btn .nav-icon { font-size: 18px; }
-
-  .bottom-nav-btn.active {
-    color: var(--accent);
-  }
+  .bottom-nav-btn .nav-icon { font-size: 20px; }
+  .bottom-nav-btn.active { color: var(--accent); }
 
   .app {
     flex-direction: column;
+    height: 100vh;
     height: 100dvh;
-    overflow: hidden;
   }
 
   .main {
@@ -1313,16 +1311,10 @@ body {
   .search-bar { width: 110px; }
   .search-bar:focus { width: 140px; }
 
-  /* Timetable horizontal scroll */
   .timetable-grid { padding: 0 0 16px; }
-
-  .grid-header,
-  .grid-body { min-width: 600px; }
-
-  /* Courses */
+  .grid-header, .grid-body { min-width: 600px; }
   .courses-grid { padding: 0 16px 16px; }
 
-  /* Modals full-screen */
   .modal-overlay { align-items: flex-end; }
   .modal {
     width: 100%;
