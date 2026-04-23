@@ -41,7 +41,7 @@ const SEED_USERS = {
   },
   '5014296': {
     firstName: 'Nico', lastName: 'Grasser',
-    courseIds: ['c_b2b', 'c_servicelearning', 'c_anlage', 'c_bizplan']
+    courseIds: ['c_kommunikation', 'c_b2b', 'c_servicelearning', 'c_anlage', 'c_bizplan']
   }
 };
 
