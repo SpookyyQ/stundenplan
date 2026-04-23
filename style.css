@@ -134,9 +134,6 @@ body {
 
 .nav-btn-sim {
   text-decoration: none;
-  margin-top: 4px;
-  border-top: 1px solid var(--border);
-  padding-top: 14px;
   color: var(--text-muted);
 }
 
@@ -1542,7 +1539,7 @@ body {
   .nav-btn { justify-content: center; padding: 12px; }
   .nav-icon { font-size: 18px; }
   .cardContainer, .now-next, .next-exam, .current-week { display: none; }
-  .nav-btn-sim { border-top: none; padding-top: 12px; margin-top: 0; }
+  .nav-btn-sim { padding-top: 12px; }
 }
 
 /* ── Mobile ── */
