@@ -1248,8 +1248,21 @@ function renderExams() {
         <span class="exam-countdown ${cls}">${text}</span>
       </div>`;
     } else {
-      const ms = [...(exam.milestones||[])].sort((a,b) => a.date.localeCompare(b.date));
       const next = nextMilestone(exam);
+      const ms = [...(exam.milestones||[])].sort((a,b) => {
+        const aPast = daysUntil(a.date) < 0;
+        const bPast = daysUntil(b.date) < 0;
+        if (aPast !== bPast) return aPast ? 1 : -1;
+        return a.date.localeCompare(b.date);
+      });
+      const nextDueHtml = next ? (() => {
+        const nextDate = new Date(next.date).toLocaleDateString('de-DE', { day:'2-digit', month:'short', year:'numeric' });
+        return `<div class="exam-next-due">
+          <span class="exam-next-label">Nächste Abgabe</span>
+          <span class="exam-next-title">${next.title}</span>
+          <span class="exam-next-date">${nextDate}${next.time ? ' · ' + next.time : ''}</span>
+        </div>`;
+      })() : '';
       milestonesHtml = `<div class="milestone-list">${ms.map(m => {
         const past = daysUntil(m.date) < 0;
         const isNext = m.id === next?.id;
@@ -1261,6 +1274,7 @@ function renderExams() {
           ${isNext ? '<span class="milestone-next-label">Nächste</span>' : ''}
         </div>`;
       }).join('')}</div>`;
+      dateHtml = nextDueHtml;
     }
 
     card.innerHTML = `

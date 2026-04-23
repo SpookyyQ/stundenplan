@@ -558,7 +558,7 @@ body {
 
 .lesson-name {
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -961,6 +961,43 @@ body {
 
 .exam-card-course { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
 .exam-card-note   { font-size: 12px; color: var(--text-muted); margin-top: 6px; font-style: italic; }
+
+.exam-next-due {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: rgba(106,255,158,0.09);
+  border: 1px solid rgba(106,255,158,0.2);
+  border-radius: var(--radius-sm);
+}
+
+.exam-next-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6aff9e;
+}
+
+.exam-next-title {
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exam-next-date {
+  font-size: 12px;
+  font-weight: 800;
+  color: #6aff9e;
+  white-space: nowrap;
+}
 
 .exam-date-row {
   display: flex;
@@ -1390,9 +1427,56 @@ body {
   .timetable-grid { padding: 0 0 16px; }
   .grid-header, .grid-body { min-width: 600px; }
   .courses-grid { padding: 0 16px 16px; }
+  .exams-list { gap: 10px; padding: 0 16px 16px; }
+  .exam-card { padding: 15px 16px; }
+  .exam-card-inner { padding-left: 8px; }
+  .exam-card-header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .exam-card-title {
+    min-width: 0;
+    font-size: 18px;
+    line-height: 1.2;
+  }
+  .exam-badge {
+    flex: 0 0 auto;
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+  .exam-next-due {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    margin-top: 12px;
+    padding: 10px;
+  }
+  .exam-next-title {
+    white-space: normal;
+    font-size: 14px;
+    line-height: 1.25;
+  }
+  .exam-next-date { font-size: 13px; }
+  .milestone-list { gap: 4px; margin-top: 8px; }
+  .milestone-item {
+    display: grid;
+    grid-template-columns: 8px 1fr auto;
+    gap: 8px;
+    padding: 7px 0;
+    font-size: 12px;
+  }
+  .milestone-title {
+    min-width: 0;
+    line-height: 1.25;
+  }
+  .milestone-date {
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .milestone-next-label { display: none; }
 
   .lesson-card { padding: 8px 10px; }
-  .lesson-name { font-size: 14px; font-weight: 700; }
+  .lesson-name { font-size: 14px; font-weight: 500; }
   .lesson-time { font-size: 12px; margin-top: 3px; }
   .lesson-room, .lesson-teacher { font-size: 11px; }
   .lesson-room { margin-top: 2px; }
