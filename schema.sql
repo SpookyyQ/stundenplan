@@ -5,7 +5,8 @@ create table public.profiles (
   id           uuid references auth.users on delete cascade primary key,
   first_name   text default '',
   last_name    text default '',
-  semester_end text default '2026-07-17'
+  semester_end text default '2026-07-17',
+  semester_key text default ''
 );
 
 create table public.courses (
@@ -52,10 +53,14 @@ alter table public.courses  enable row level security;
 alter table public.lessons  enable row level security;
 alter table public.exams    enable row level security;
 
-create policy "own profile" on public.profiles for all using (auth.uid() = id)         with check (auth.uid() = id);
-create policy "own courses" on public.courses  for all using (auth.uid() = user_id)    with check (auth.uid() = user_id);
-create policy "own lessons" on public.lessons  for all using (auth.uid() = user_id)    with check (auth.uid() = user_id);
-create policy "own exams"   on public.exams    for all using (auth.uid() = user_id)    with check (auth.uid() = user_id);
+create policy "own profile" on public.profiles for all using ((select auth.uid()) = id)      with check ((select auth.uid()) = id);
+create policy "own courses" on public.courses  for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy "own lessons" on public.lessons  for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy "own exams"   on public.exams    for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+
+create index courses_user_id_idx on public.courses(user_id);
+create index lessons_user_id_idx on public.lessons(user_id);
+create index exams_user_id_idx on public.exams(user_id);
 
 -- Auto-create empty profile on signup
 create or replace function public.handle_new_user()
