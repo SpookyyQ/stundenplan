@@ -534,7 +534,7 @@ body {
   left: 0;
   right: 0;
   border-radius: var(--radius-sm);
-  padding: 8px 10px;
+  padding: 12px 14px;
   cursor: pointer;
   transition: filter 0.18s, transform 0.18s;
   overflow: hidden;
@@ -557,29 +557,29 @@ body {
 }
 
 .lesson-name {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 800;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .lesson-time {
-  font-size: 12px;
+  font-size: 14px;
   opacity: 0.75;
-  margin-top: 3px;
+  margin-top: 7px;
 }
 
 .lesson-room {
-  font-size: 11px;
+  font-size: 13px;
   opacity: 0.65;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .lesson-teacher {
-  font-size: 11px;
+  font-size: 13px;
   opacity: 0.65;
-  margin-top: 1px;
+  margin-top: 3px;
 }
 
 /* ── Courses Grid ── */
@@ -1390,6 +1390,13 @@ body {
   .timetable-grid { padding: 0 0 16px; }
   .grid-header, .grid-body { min-width: 600px; }
   .courses-grid { padding: 0 16px 16px; }
+
+  .lesson-card { padding: 8px 10px; }
+  .lesson-name { font-size: 14px; font-weight: 700; }
+  .lesson-time { font-size: 12px; margin-top: 3px; }
+  .lesson-room, .lesson-teacher { font-size: 11px; }
+  .lesson-room { margin-top: 2px; }
+  .lesson-teacher { margin-top: 1px; }
 
   .modal-overlay {
     align-items: flex-end;
