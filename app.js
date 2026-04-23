@@ -5,8 +5,12 @@ const SUPABASE_URL = 'https://fztnwuvcnuqydpoayzpq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6dG53dXZjbnVxeWRwb2F5enBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODkyMzcsImV4cCI6MjA5MjQ2NTIzN30.Kox8o3ZmcndZhSspY5UTF8JC30eT8UkGRctKKEQgGPs';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const JASON_MATRIKEL = '5014263';
-const SEMESTER_END   = '2026-07-17';
+const SEMESTER_END = '2026-07-17';
+
+const SEED_USERS = {
+  '5014263': { firstName: 'Jason', lastName: 'Bedranowsky', courseIds: null },
+  '5014325': { firstName: 'Tim',   lastName: 'Bellmann',    courseIds: ['c_kommunikation', 'c_b2b', 'c_anlage', 'c_bizplan'] }
+};
 
 const PRESET_COURSES = [
   { id: 'c_kommunikation',   name: 'Kommunikation',    teacher: 'Frau Seeliger', room: 'A1 06',  color: '#6adfff' },
@@ -231,16 +235,20 @@ function dbSaveProfile() {
   });
 }
 
-// ── Seed Jason's preset data (first login only) ──
-async function seedJason() {
+// ── Seed preset data (first login only) ──
+async function seedUser(config) {
   const uid = currentUser.id;
+  const courseFilter = config.courseIds;
+  const courses = courseFilter ? PRESET_COURSES.filter(c => courseFilter.includes(c.id)) : PRESET_COURSES;
+  const lessons = courseFilter ? PRESET_LESSONS.filter(l => courseFilter.includes(l.courseId)) : PRESET_LESSONS;
+
   await Promise.all([
-    sb.from('profiles').upsert({ id: uid, first_name: 'Jason', last_name: 'Bedranowsky', semester_end: SEMESTER_END }),
-    ...PRESET_COURSES.map(c => sb.from('courses').upsert({
+    sb.from('profiles').upsert({ id: uid, first_name: config.firstName, last_name: config.lastName, semester_end: SEMESTER_END }),
+    ...courses.map(c => sb.from('courses').upsert({
       id: c.id, user_id: uid,
       name: c.name, teacher: c.teacher, room: c.room, color: c.color, moodle_url: ''
     })),
-    ...PRESET_LESSONS.map(l => sb.from('lessons').upsert({
+    ...lessons.map(l => sb.from('lessons').upsert({
       id: l.id, user_id: uid, course_id: l.courseId,
       day: l.day, start_time: l.start, end_time: l.end,
       room: l.room || '', date: l.date || null, start_date: l.startDate || null
@@ -1134,10 +1142,11 @@ async function fetchWeather() {
 async function initApp() {
   await loadState();
 
-  // Auto-seed Jason's preset data on first login
+  // Auto-seed preset data on first login
   const matrikel = currentUser.email.split('@')[0];
-  if (matrikel === JASON_MATRIKEL && courses.length === 0) {
-    await seedJason();
+  const seedConfig = SEED_USERS[matrikel];
+  if (seedConfig && courses.length === 0) {
+    await seedUser(seedConfig);
     await loadState();
   }
 
