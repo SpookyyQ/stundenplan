@@ -463,27 +463,52 @@ function dbSaveProfile() {
   });
 }
 
-// ── Seed preset data (first login only) ──
-async function seedUser(config) {
-  const uid = currentUser.id;
+function buildSeedData(config) {
   const courseFilter = config.courseIds;
   const baseCourses = courseFilter ? PRESET_COURSES.filter(c => courseFilter.includes(c.id)) : PRESET_COURSES;
   const baseLessons = courseFilter ? PRESET_LESSONS.filter(l => courseFilter.includes(l.courseId)) : PRESET_LESSONS;
-  const courses = [...baseCourses, ...(config.extraCourses || [])];
-  const lessons = [...baseLessons, ...(config.extraLessons || [])];
+  return {
+    courses: [...baseCourses, ...(config.extraCourses || [])],
+    lessons: [...baseLessons, ...(config.extraLessons || [])]
+  };
+}
+
+// ── Seed preset data (first login only) ──
+async function seedUser(config) {
+  const uid = currentUser.id;
+  const seed = buildSeedData(config);
 
   await Promise.all([
     sb.from('profiles').upsert({ id: uid, first_name: config.firstName, last_name: config.lastName, semester_end: SEMESTER_END, semester_key: '' }),
-    ...courses.map(c => sb.from('courses').upsert({
+    ...seed.courses.map(c => sb.from('courses').upsert({
       id: c.id, user_id: uid,
       name: c.name, teacher: c.teacher, room: c.room, color: c.color, moodle_url: ''
     })),
-    ...lessons.map(l => sb.from('lessons').upsert({
+    ...seed.lessons.map(l => sb.from('lessons').upsert({
       id: l.id, user_id: uid, course_id: l.courseId,
       day: l.day, start_time: l.start, end_time: l.end,
       room: l.room || '', date: l.date || null, start_date: l.startDate || null
     }))
   ]);
+}
+
+async function syncSeedUserPresets(config) {
+  const seed = buildSeedData(config);
+  const missingCourses = seed.courses.filter(c => !courses.some(existing => existing.id === c.id));
+  const missingLessons = seed.lessons.filter(l => !lessons.some(existing => existing.id === l.id));
+
+  if (missingCourses.length === 0 && missingLessons.length === 0) return;
+
+  const results = await Promise.all([
+    ...missingCourses.map(c => dbUpsertCourse({ ...c, moodleUrl: '' })),
+    ...missingLessons.map(dbUpsertLesson)
+  ]);
+
+  const failed = results.find(result => result?.error);
+  if (failed) throw failed.error;
+
+  courses = [...courses, ...missingCourses.map(c => ({ ...c, moodleUrl: '' }))];
+  lessons = [...lessons, ...missingLessons.map(l => ({ ...l }))];
 }
 
 // ── ID generator ──
@@ -1491,6 +1516,8 @@ async function initApp() {
   if (seedConfig && courses.length === 0) {
     await seedUser(seedConfig);
     await loadState();
+  } else if (seedConfig) {
+    await syncSeedUserPresets(seedConfig);
   }
 
   await syncAutoExamsForCourses();
