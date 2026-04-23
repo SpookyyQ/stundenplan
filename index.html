@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <link rel="stylesheet" href="style.css?v=20260423123523" />
+  <link rel="stylesheet" href="style.css?v=20260423110012" />
 </head>
 <body>
   <!-- Login Screen -->
@@ -22,6 +22,10 @@
         <div class="input-box">
           <input type="text" id="loginMatrikel" placeholder="Matrikelnummer" required autocomplete="username" inputmode="numeric" />
           <span class="input-icon">◈</span>
+        </div>
+        <div class="input-box hidden" id="loginNameGroup">
+          <input type="text" id="loginName" placeholder="Dein Name" autocomplete="name" />
+          <span class="input-icon">◇</span>
         </div>
         <p class="login-error hidden" id="loginError"></p>
         <button class="btn" type="submit" id="loginBtn">Anmelden</button>
@@ -371,6 +375,6 @@
 
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');</script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="app.js?v=20260423123523"></script>
+  <script src="app.js?v=20260423110012"></script>
 </body>
 </html>
