@@ -21,6 +21,16 @@
   --bottom-nav-height: 62px;
 }
 
+:root.light-mode {
+  --bg:        #f0f0f7;
+  --surface:   #ffffff;
+  --surface2:  #e8e8f2;
+  --border:    #d8d8e8;
+  --text:      #1a1a2e;
+  --text-muted:#7070a0;
+  --shadow:    0 4px 24px rgba(0,0,0,0.10);
+}
+
 html, body {
   height: var(--app-height);
   overflow: hidden;
@@ -1216,6 +1226,99 @@ body {
   margin-bottom: 20px;
   color: var(--text);
 }
+
+/* ── Theme Toggle ── */
+.theme-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.theme-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.theme-row-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.theme-row-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.theme-icon-dark, .theme-icon-light { font-size: 16px; line-height: 1; }
+
+.theme-track {
+  width: 44px;
+  height: 24px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.theme-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s, background 0.2s;
+}
+
+:root.light-mode .theme-thumb {
+  transform: translateX(20px);
+  background: var(--accent);
+}
+
+/* ── Light mode overrides for hard-coded dark colors ── */
+:root.light-mode .card {
+  background-color: rgba(200, 200, 230, 0.5);
+  border-color: rgba(124, 106, 255, 0.2);
+}
+
+:root.light-mode .city,
+:root.light-mode .temp,
+:root.light-mode .maxHeading,
+:root.light-mode .minHeading {
+  color: var(--text);
+}
+
+:root.light-mode .weather,
+:root.light-mode .maxTemp,
+:root.light-mode .minTemp {
+  color: var(--text-muted);
+}
+
+:root.light-mode .max {
+  border-left-color: var(--border);
+}
+
+:root.light-mode .login-screen {
+  background: var(--bg);
+}
+
+:root.light-mode .login-logo-icon,
+:root.light-mode .form-login { color: var(--text); }
 
 /* ── Login ── */
 .login-screen {
