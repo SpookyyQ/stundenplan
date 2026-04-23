@@ -10,6 +10,7 @@
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
   <link rel="apple-touch-icon" href="icon.svg" />
   <link rel="stylesheet" href="style.css?v=20260423115634" />
+  <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light-mode');</script>
 </head>
 <body>
   <!-- Login Screen -->
@@ -181,6 +182,21 @@
             <div class="form-actions">
               <div class="spacer"></div>
               <button class="btn-primary" id="saveSettings">Speichern</button>
+            </div>
+          </div>
+
+          <div class="settings-card" style="margin-top:16px">
+            <h2 class="settings-section-title">Darstellung</h2>
+            <div class="theme-row">
+              <div class="theme-row-info">
+                <span class="theme-row-label">Theme</span>
+                <span class="theme-row-sub">Helles oder dunkles Design</span>
+              </div>
+              <button class="theme-toggle" id="themeToggle" aria-label="Theme wechseln">
+                <span class="theme-icon-dark">🌙</span>
+                <span class="theme-track"><span class="theme-thumb"></span></span>
+                <span class="theme-icon-light">☀️</span>
+              </button>
             </div>
           </div>
 

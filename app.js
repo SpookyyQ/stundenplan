@@ -998,6 +998,11 @@ function renderSettings() {
   }
 }
 
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const isLight = document.documentElement.classList.toggle('light-mode');
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+});
+
 document.getElementById('saveSettings').addEventListener('click', () => {
   profile.firstName = document.getElementById('settingsFirstName').value.trim();
   profile.lastName  = document.getElementById('settingsLastName').value.trim();
