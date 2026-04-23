@@ -6,13 +6,21 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function updateAppHeight() {
-  const height = window.visualViewport?.height || window.innerHeight;
+  const viewport = window.visualViewport;
+  const height = viewport?.height || window.innerHeight;
+  const top = viewport?.offsetTop || 0;
+  document.documentElement.style.setProperty('--app-top', `${top}px`);
   document.documentElement.style.setProperty('--app-height', `${height}px`);
 }
 
 updateAppHeight();
+requestAnimationFrame(updateAppHeight);
+window.addEventListener('load', updateAppHeight);
+window.addEventListener('pageshow', updateAppHeight);
 window.addEventListener('resize', updateAppHeight);
 window.addEventListener('orientationchange', updateAppHeight);
+setTimeout(updateAppHeight, 250);
+setTimeout(updateAppHeight, 1000);
 window.visualViewport?.addEventListener('resize', updateAppHeight);
 window.visualViewport?.addEventListener('scroll', updateAppHeight);
 
