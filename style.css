@@ -16,10 +16,12 @@
   --time-col:  60px;
   --day-col:   1fr;
   --hour-height: 72px;
+  --app-height: 100dvh;
+  --bottom-nav-height: 62px;
 }
 
 html, body {
-  height: 100%;
+  height: var(--app-height);
   overflow: hidden;
   overscroll-behavior: none;
 }
@@ -29,13 +31,19 @@ body {
   background: var(--bg);
   color: var(--text);
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: var(--app-height);
 }
 
 /* ── Layout ── */
 .app {
   display: flex;
-  height: 100%;
+  position: relative;
+  overflow: hidden;
+  height: var(--app-height);
 }
 
 /* ── Sidebar ── */
@@ -1253,7 +1261,7 @@ body {
   right: 0;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  height: 62px;
+  height: var(--bottom-nav-height);
   z-index: 999;
 }
 
@@ -1313,11 +1321,13 @@ body {
   }
 
   .bottom-nav {
+    position: absolute;
     padding-bottom: env(safe-area-inset-bottom);
-    height: calc(62px + env(safe-area-inset-bottom));
+    height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+    transform: translateZ(0);
   }
 
-  .main { padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
+  .main { padding-bottom: calc(var(--bottom-nav-height) + 8px + env(safe-area-inset-bottom)); }
 
   .main-header h1 { font-size: 18px; }
   .subtitle { font-size: 12px; }
@@ -1342,7 +1352,7 @@ body {
 
   .modal {
     width: 100%;
-    max-height: calc(100dvh - 12px - env(safe-area-inset-top));
+    max-height: calc(var(--app-height) - 12px - env(safe-area-inset-top));
     border-radius: var(--radius) var(--radius) 0 0;
     padding-bottom: calc(28px + env(safe-area-inset-bottom));
     overflow-y: auto;
