@@ -187,6 +187,7 @@ const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8);
 const HOUR_HEIGHT = 72;
 const DAY_START   = 8;
+const MIN_BREAK_MINUTES = 45;
 
 const COLORS = [
   '#7c6aff','#ff6a9e','#6adfff','#6aff9e','#ffb86a',
@@ -717,6 +718,23 @@ function renderTimetable() {
       card.addEventListener('click', () => openLessonModal(lesson.id));
       wrapper.appendChild(card);
     });
+
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const current = sorted[i];
+      const next = sorted[i + 1];
+      const gap = timeToMinutes(next.start) - timeToMinutes(current.end);
+      if (gap < MIN_BREAK_MINUTES) continue;
+
+      const breakCard = document.createElement('div');
+      breakCard.className = 'lesson-break-card';
+      breakCard.style.top = lessonTop(current.end) + 'px';
+      breakCard.style.height = Math.max(minutesToPx(gap), 36) + 'px';
+      breakCard.innerHTML = `
+        <div class="break-name">Mittagspause</div>
+        <div class="break-time">${current.end} – ${next.start}</div>
+      `;
+      wrapper.appendChild(breakCard);
+    }
 
     body.appendChild(wrapper);
   });
