@@ -1045,14 +1045,11 @@ async function loadGroup() {
   myGroupStatus = myGroup.creator_id === currentUser.id ? 'creator' : membership.status;
 
   if (myGroupStatus !== 'pending') {
-    const { data: members } = await sb.from('group_members').select('*').eq('group_id', myGroup.id);
-    const userIds = (members || []).map(m => m.user_id);
-    if (userIds.length > 0) {
-      const { data: profiles } = await sb.from('profiles').select('*').in('id', userIds);
-      groupMembers = members.map(m => ({ ...m, profile: (profiles || []).find(p => p.id === m.user_id) || {} }));
-    } else {
-      groupMembers = [];
-    }
+    const { data: members } = await sb.rpc('get_group_members', { p_group_id: myGroup.id });
+    groupMembers = (members || []).map(m => ({
+      ...m,
+      profile: { first_name: m.first_name, last_name: m.last_name }
+    }));
   }
 }
 
@@ -1061,7 +1058,10 @@ async function createGroup(name) {
     .insert({ name, creator_id: currentUser.id })
     .select().single();
   if (error) throw error;
-  await sb.from('group_members').insert({ group_id: group.id, user_id: currentUser.id, status: 'accepted' });
+  await sb.from('group_members').insert({
+    group_id: group.id, user_id: currentUser.id,
+    status: 'accepted', creator_id: currentUser.id
+  });
   myGroup = group; myGroupStatus = 'creator'; groupMembers = [];
 }
 
@@ -1073,7 +1073,7 @@ async function joinGroup(code) {
   if (error || !group) throw new Error('Gruppe nicht gefunden');
   if (group.creator_id === currentUser.id) throw new Error('Das ist deine eigene Gruppe');
   const { error: iErr } = await sb.from('group_members')
-    .insert({ group_id: group.id, user_id: currentUser.id, status: 'pending' });
+    .insert({ group_id: group.id, user_id: currentUser.id, status: 'pending', creator_id: group.creator_id });
   if (iErr) {
     if (iErr.code === '23505') throw new Error('Anfrage bereits gesendet');
     throw iErr;
