@@ -97,24 +97,7 @@ function showApp() {
   document.getElementById('appRoot').style.display = 'flex';
 }
 
-let loginMode = 'login';
-
-function setLoginMode(mode) {
-  loginMode = mode;
-  document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
-  document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
-  document.getElementById('confirmBox').style.display = mode === 'register' ? '' : 'none';
-  document.getElementById('loginBtn').textContent = mode === 'login' ? 'Anmelden' : 'Registrieren';
-  document.getElementById('loginSub').textContent = mode === 'login'
-    ? 'Melde dich mit deiner Matrikelnummer an.'
-    : 'Erstelle deinen persönlichen Stundenplan.';
-  document.getElementById('loginError').classList.add('hidden');
-}
-
 async function initAuth() {
-  document.getElementById('tabLogin').addEventListener('click', () => setLoginMode('login'));
-  document.getElementById('tabRegister').addEventListener('click', () => setLoginMode('register'));
-
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
     currentUser = session.user;
@@ -126,8 +109,8 @@ async function initAuth() {
   document.getElementById('loginForm').addEventListener('submit', async e => {
     e.preventDefault();
     const matrikel = document.getElementById('loginMatrikel').value.trim();
-    const password = document.getElementById('loginPassword').value;
     const email    = `${matrikel}@eliteplan.htw`;
+    const password = `ep_${matrikel}_htw`;
     const errorEl  = document.getElementById('loginError');
     const btn      = document.getElementById('loginBtn');
     errorEl.classList.add('hidden');
@@ -135,25 +118,19 @@ async function initAuth() {
     btn.textContent = '…';
 
     try {
-      if (loginMode === 'register') {
-        const confirm = document.getElementById('loginConfirm').value;
-        if (password !== confirm) throw new Error('Passwörter stimmen nicht überein.');
-        if (password.length < 6)  throw new Error('Passwort muss mindestens 6 Zeichen haben.');
-        const { data, error } = await sb.auth.signUp({ email, password });
+      let { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        ({ data, error } = await sb.auth.signUp({ email, password }));
         if (error) throw new Error(error.message);
-        currentUser = data.user;
-      } else {
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) throw new Error('Falsche Matrikelnummer oder Passwort.');
-        currentUser = data.user;
       }
+      currentUser = data.user;
       await initApp();
       showApp();
     } catch (err) {
-      errorEl.textContent = err.message;
+      errorEl.textContent = 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.';
       errorEl.classList.remove('hidden');
       btn.disabled = false;
-      btn.textContent = loginMode === 'login' ? 'Anmelden' : 'Registrieren';
+      btn.textContent = 'Anmelden';
     }
   });
 }

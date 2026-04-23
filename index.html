@@ -17,23 +17,11 @@
         <span class="login-logo-icon">◈</span>
         <p class="form-login">ElitePlan</p>
       </div>
-      <div class="login-tabs">
-        <button type="button" class="login-tab active" id="tabLogin">Anmelden</button>
-        <button type="button" class="login-tab" id="tabRegister">Registrieren</button>
-      </div>
       <p class="login-sub" id="loginSub">Melde dich mit deiner Matrikelnummer an.</p>
       <form id="loginForm">
         <div class="input-box">
           <input type="text" id="loginMatrikel" placeholder="Matrikelnummer" required autocomplete="username" inputmode="numeric" />
           <span class="input-icon">◈</span>
-        </div>
-        <div class="input-box">
-          <input type="password" id="loginPassword" placeholder="Passwort" required autocomplete="current-password" />
-          <span class="input-icon">🔒</span>
-        </div>
-        <div class="input-box" id="confirmBox" style="display:none">
-          <input type="password" id="loginConfirm" placeholder="Passwort bestätigen" autocomplete="new-password" />
-          <span class="input-icon">🔒</span>
         </div>
         <p class="login-error hidden" id="loginError"></p>
         <button class="btn" type="submit" id="loginBtn">Anmelden</button>
