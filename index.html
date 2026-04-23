@@ -64,6 +64,11 @@
           <span class="nav-icon">🍴︎</span>
           <span>Mensa</span>
         </button>
+        <button class="nav-btn nav-btn-group" data-view="group">
+          <span class="nav-icon">⬡</span>
+          <span>Gruppe</span>
+          <span class="group-badge" id="groupNavBadge" style="display:none"></span>
+        </button>
         <a class="nav-btn nav-btn-sim" href="https://sim.htwsaar.de/" target="_blank" rel="noopener">
           <span class="nav-icon">↗</span>
           <span>SIM</span>
@@ -238,6 +243,17 @@
         <div class="mensa-list" id="mensaList"></div>
       </section>
 
+      <!-- Group View -->
+      <section class="view" id="view-group">
+        <header class="main-header">
+          <div class="header-left">
+            <h1>Gruppe</h1>
+            <p class="subtitle" id="groupSubtitle">Deine Lerngruppe</p>
+          </div>
+        </header>
+        <div class="group-body settings-body" id="groupBody"></div>
+      </section>
+
       <!-- Exams View -->
       <section class="view" id="view-exams">
         <header class="main-header">
@@ -263,6 +279,20 @@
       <button class="bottom-nav-btn" data-view="mensa"><span class="nav-icon">🍴︎</span><span>Mensa</span></button>
       <button class="bottom-nav-btn" data-view="settings"><span class="nav-icon">⚙</span><span>Mehr</span></button>
     </nav>
+  </div>
+
+  <!-- Member Timetable Overlay -->
+  <div class="member-overlay" id="memberOverlay">
+    <div class="member-overlay-header">
+      <button class="btn-secondary" id="closeMemberOverlay">← Zurück</button>
+      <h2 id="memberOverlayName"></h2>
+      <div class="member-week-nav">
+        <button class="btn-secondary" id="memberPrevWeek">‹</button>
+        <span id="memberWeekLabel"></span>
+        <button class="btn-secondary" id="memberNextWeek">›</button>
+      </div>
+    </div>
+    <div class="member-schedule" id="memberSchedule"></div>
   </div>
 
   <!-- Modal: Klausur / Projekt -->
