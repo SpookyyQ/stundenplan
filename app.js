@@ -9,7 +9,17 @@ const SEMESTER_END = '2026-07-17';
 
 const SEED_USERS = {
   '5014263': { firstName: 'Jason', lastName: 'Bedranowsky', courseIds: null },
-  '5014325': { firstName: 'Tim',   lastName: 'Bellmann',    courseIds: ['c_kommunikation', 'c_b2b', 'c_anlage', 'c_bizplan'] }
+  '5014325': {
+    firstName: 'Tim', lastName: 'Bellmann',
+    courseIds: ['c_kommunikation', 'c_b2b', 'c_anlage', 'c_bizplan'],
+    extraCourses: [
+      { id: 'c_gps', name: 'Ganzheitliche Produktionssysteme', teacher: 'Herr Arendes', room: 'D 1 12', color: '#ffea6a' }
+    ],
+    extraLessons: [
+      { id: 'l_gps_fri_1', courseId: 'c_gps', day: 4, start: '11:45', end: '13:15', room: '' },
+      { id: 'l_gps_fri_2', courseId: 'c_gps', day: 4, start: '14:15', end: '15:45', room: '' }
+    ]
+  }
 };
 
 const PRESET_COURSES = [
@@ -239,8 +249,10 @@ function dbSaveProfile() {
 async function seedUser(config) {
   const uid = currentUser.id;
   const courseFilter = config.courseIds;
-  const courses = courseFilter ? PRESET_COURSES.filter(c => courseFilter.includes(c.id)) : PRESET_COURSES;
-  const lessons = courseFilter ? PRESET_LESSONS.filter(l => courseFilter.includes(l.courseId)) : PRESET_LESSONS;
+  const baseCourses = courseFilter ? PRESET_COURSES.filter(c => courseFilter.includes(c.id)) : PRESET_COURSES;
+  const baseLessons = courseFilter ? PRESET_LESSONS.filter(l => courseFilter.includes(l.courseId)) : PRESET_LESSONS;
+  const courses = [...baseCourses, ...(config.extraCourses || [])];
+  const lessons = [...baseLessons, ...(config.extraLessons || [])];
 
   await Promise.all([
     sb.from('profiles').upsert({ id: uid, first_name: config.firstName, last_name: config.lastName, semester_end: SEMESTER_END }),
