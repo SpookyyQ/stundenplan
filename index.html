@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <link rel="stylesheet" href="style.css?v=20260423121519" />
+  <link rel="stylesheet" href="style.css?v=20260423121730" />
 </head>
 <body>
   <!-- Login Screen -->
@@ -195,6 +195,15 @@
       </section>
 
     </main>
+
+    <!-- Bottom Nav (mobile only) -->
+    <nav class="bottom-nav">
+      <button class="bottom-nav-btn active" data-view="timetable"><span class="nav-icon">▦</span><span>Plan</span></button>
+      <button class="bottom-nav-btn" data-view="courses"><span class="nav-icon">✦</span><span>Kurse</span></button>
+      <button class="bottom-nav-btn" data-view="exams"><span class="nav-icon">✎</span><span>Klausuren</span></button>
+      <button class="bottom-nav-btn" data-view="mensa"><span class="nav-icon">◍</span><span>Mensa</span></button>
+      <button class="bottom-nav-btn" data-view="settings"><span class="nav-icon">⚙</span><span>Mehr</span></button>
+    </nav>
   </div>
 
   <!-- Modal: Klausur / Projekt -->
@@ -360,17 +369,8 @@
     </div>
   </div>
 
-  <!-- Bottom Nav (mobile only) -->
-  <nav class="bottom-nav">
-    <button class="bottom-nav-btn active" data-view="timetable"><span class="nav-icon">▦</span><span>Plan</span></button>
-    <button class="bottom-nav-btn" data-view="courses"><span class="nav-icon">✦</span><span>Kurse</span></button>
-    <button class="bottom-nav-btn" data-view="exams"><span class="nav-icon">✎</span><span>Klausuren</span></button>
-    <button class="bottom-nav-btn" data-view="mensa"><span class="nav-icon">◍</span><span>Mensa</span></button>
-    <button class="bottom-nav-btn" data-view="settings"><span class="nav-icon">⚙</span><span>Mehr</span></button>
-  </nav>
-
   <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');</script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="app.js?v=20260423121519"></script>
+  <script src="app.js?v=20260423121730"></script>
 </body>
 </html>
