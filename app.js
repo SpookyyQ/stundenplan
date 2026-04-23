@@ -1687,10 +1687,14 @@ function renderExams() {
           <span class="exam-badge ${exam.type === 'projekt' ? 'projekt' : ''}">${exam.type === 'klausur' ? 'Klausur' : 'Projekt'}</span>
         </div>
         <div class="exam-card-course">${course?.name || ''}</div>
-        ${dateHtml}
-        ${milestonesHtml}
-        ${exam.note ? `<div class="exam-card-note">${exam.note}</div>` : ''}
+        <div class="exam-card-content">
+          ${dateHtml}
+          ${milestonesHtml}
+          ${exam.note ? `<div class="exam-card-note">${exam.note}</div>` : ''}
+        </div>
       </div>`;
+    const content = card.querySelector('.exam-card-content');
+    content?.addEventListener('wheel', e => e.stopPropagation(), { passive: true });
     card.addEventListener('click', () => openExamModal(exam.id));
     list.appendChild(card);
   });
