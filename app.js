@@ -996,41 +996,36 @@ function mensaLocalISO(offset = 0) {
 async function fetchMensa(dateISO) {
   const list = document.getElementById('mensaList');
   const sub  = document.getElementById('mensaDate');
-  list.innerHTML = '<div class="mensa-closed">Laden…</div>';
+  list.innerHTML = '';
 
   const d = new Date(dateISO + 'T12:00:00');
-  sub.textContent = d.toLocaleDateString('de-DE', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+  const dateLabel = d.toLocaleDateString('de-DE', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
 
   try {
     const res  = await fetch(`https://openmensa.org/api/v2/canteens/828/days/${dateISO}/meals`);
     if (!res.ok) throw new Error();
     const meals = await res.json();
 
-    if (!meals || meals.length === 0) {
-      list.innerHTML = '<div class="mensa-closed">Heute geschlossen oder kein Speiseplan verfügbar.</div>';
-      return;
-    }
+    const filtered = (!meals || meals.length === 0) ? [] : meals.filter(m => m.name.trim().toLowerCase() !== 'tagesaktuell');
 
-    const filtered = meals.filter(m => m.name.trim().toLowerCase() !== 'tagesaktuell');
     if (filtered.length === 0) {
-      list.innerHTML = '<div class="mensa-closed">Heute geschlossen oder kein Speiseplan verfügbar.</div>';
+      sub.textContent = dateLabel + ' · Kein Speiseplan verfügbar';
       return;
     }
 
+    sub.textContent = dateLabel;
     list.innerHTML = filtered.map(m => {
       const price = m.prices?.students ? `${m.prices.students.toFixed(2).replace('.',',')} €` : '–';
-      const notes = (m.notes || []).slice(0, 5);
       return `<div class="mensa-card">
         <div class="mensa-card-left">
           <div class="mensa-category">${m.category}</div>
           <div class="mensa-name">${m.name}</div>
-          ${notes.length ? `<div class="mensa-notes">${notes.map(n=>`<span class="mensa-note-tag">${n}</span>`).join('')}</div>` : ''}
         </div>
         <div class="mensa-price">${price}</div>
       </div>`;
     }).join('');
   } catch {
-    list.innerHTML = '<div class="mensa-closed">Speiseplan konnte nicht geladen werden.</div>';
+    sub.textContent = dateLabel + ' · Speiseplan konnte nicht geladen werden';
   }
 }
 
