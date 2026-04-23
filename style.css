@@ -793,6 +793,13 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  transition: background 0.18s, border-color 0.18s, transform 0.18s;
+  cursor: default;
+}
+.mensa-card:hover {
+  background: var(--surface2);
+  border-color: var(--accent);
+  transform: translateX(4px);
 }
 
 .mensa-card-left { flex: 1; }
