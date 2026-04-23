@@ -111,6 +111,21 @@ function showApp() {
   document.getElementById('appRoot').style.display = 'flex';
 }
 
+function getLoginCredentials(matrikel) {
+  return {
+    email: `${matrikel}@eliteplan.htw`,
+    password: `ep_${matrikel}_htw`
+  };
+}
+
+function splitFullName(fullName) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts[0] || '',
+    lastName: parts.slice(1).join(' ')
+  };
+}
+
 async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
@@ -120,31 +135,81 @@ async function initAuth() {
     return;
   }
 
+  let pendingSignupMatrikel = null;
+  const matrikelInput = document.getElementById('loginMatrikel');
+  const nameGroup = document.getElementById('loginNameGroup');
+  const nameInput = document.getElementById('loginName');
+  const loginSub = document.getElementById('loginSub');
+  const resetNameStep = () => {
+    pendingSignupMatrikel = null;
+    nameGroup.classList.add('hidden');
+    nameInput.required = false;
+    nameInput.value = '';
+    loginSub.textContent = 'Melde dich mit deiner Matrikelnummer an.';
+    document.getElementById('loginBtn').textContent = 'Anmelden';
+  };
+
+  matrikelInput.addEventListener('input', resetNameStep);
+
   document.getElementById('loginForm').addEventListener('submit', async e => {
     e.preventDefault();
-    const matrikel = document.getElementById('loginMatrikel').value.trim();
-    const email    = `${matrikel}@eliteplan.htw`;
-    const password = `ep_${matrikel}_htw`;
+    const matrikel = matrikelInput.value.trim();
+    const { email, password } = getLoginCredentials(matrikel);
+    const needsName = pendingSignupMatrikel === matrikel && !nameGroup.classList.contains('hidden');
     const errorEl  = document.getElementById('loginError');
     const btn      = document.getElementById('loginBtn');
     errorEl.classList.add('hidden');
     btn.disabled = true;
-    btn.textContent = '…';
+    btn.textContent = needsName ? 'Erstelle…' : '…';
 
     try {
+      if (needsName) {
+        const fullName = nameInput.value.trim();
+        if (!fullName) {
+          throw new Error('NAME_REQUIRED');
+        }
+
+        const { data, error } = await sb.auth.signUp({ email, password });
+        if (error) throw new Error(error.message);
+
+        currentUser = data.user || data.session?.user;
+        if (!currentUser) throw new Error('NO_USER');
+
+        const parsedName = splitFullName(fullName);
+        profile = { ...profile, ...parsedName };
+        await dbSaveProfile();
+        await initApp();
+        showApp();
+        return;
+      }
+
       let { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) {
+        if (!SEED_USERS[matrikel]) {
+          pendingSignupMatrikel = matrikel;
+          nameGroup.classList.remove('hidden');
+          nameInput.required = true;
+          loginSub.textContent = 'Diese Matrikelnummer ist neu. Gib bitte deinen Namen ein.';
+          btn.disabled = false;
+          btn.textContent = 'Account erstellen';
+          nameInput.focus();
+          return;
+        }
+
         ({ data, error } = await sb.auth.signUp({ email, password }));
         if (error) throw new Error(error.message);
       }
-      currentUser = data.user;
+      currentUser = data.user || data.session?.user;
+      if (!currentUser) throw new Error('NO_USER');
       await initApp();
       showApp();
     } catch (err) {
-      errorEl.textContent = 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.';
+      errorEl.textContent = err.message === 'NAME_REQUIRED'
+        ? 'Bitte gib deinen Namen ein.'
+        : 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.';
       errorEl.classList.remove('hidden');
       btn.disabled = false;
-      btn.textContent = 'Anmelden';
+      btn.textContent = needsName ? 'Account erstellen' : 'Anmelden';
     }
   });
 }
