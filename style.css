@@ -1405,12 +1405,21 @@ body {
 
   .bottom-nav {
     position: absolute;
-    padding-bottom: env(safe-area-inset-bottom);
-    height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+    left: 12px;
+    right: 12px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    height: var(--bottom-nav-height);
+    padding-bottom: 0;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: rgba(26,26,35,0.94);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    overflow: hidden;
     transform: translateZ(0);
   }
 
-  .main { padding-bottom: calc(var(--bottom-nav-height) + 8px + env(safe-area-inset-bottom)); }
+  .main { padding-bottom: calc(var(--bottom-nav-height) + 24px + env(safe-area-inset-bottom)); }
 
   .main-header h1 { font-size: 18px; }
   .subtitle { font-size: 12px; }
@@ -1424,10 +1433,17 @@ body {
   .search-bar { width: 110px; }
   .search-bar:focus { width: 140px; }
 
-  .timetable-grid { padding: 0 0 16px; }
+  .timetable-grid { padding: 0 0 calc(var(--bottom-nav-height) + 32px + env(safe-area-inset-bottom)); }
   .grid-header, .grid-body { min-width: 600px; }
-  .courses-grid { padding: 0 16px 16px; }
-  .exams-list { gap: 10px; padding: 0 16px 16px; }
+  .courses-grid,
+  .mensa-list,
+  .settings-body {
+    padding: 0 16px calc(var(--bottom-nav-height) + 32px + env(safe-area-inset-bottom));
+  }
+  .exams-list {
+    gap: 10px;
+    padding: 0 16px calc(var(--bottom-nav-height) + 32px + env(safe-area-inset-bottom));
+  }
   .exam-card {
     padding: 13px 14px;
     overflow: visible;
