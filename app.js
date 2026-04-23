@@ -235,9 +235,15 @@ async function initAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
     currentUser = session.user;
-    await initApp();
-    showApp();
-    return;
+    try {
+      await initApp();
+      showApp();
+      return;
+    } catch (e) {
+      console.error('Auto-login failed, falling back to login screen:', e);
+      await sb.auth.signOut();
+      currentUser = null;
+    }
   }
 
   let pendingSignupMatrikel = null;
@@ -495,7 +501,7 @@ async function syncSeedGroupMembership(config) {
   const { error } = await sb.rpc('sync_seed_group_membership', {
     p_invite_code: config.groupInviteCode.trim().toUpperCase()
   });
-  if (error) throw error;
+  if (error) console.warn('Group sync skipped:', error.message);
 }
 
 // ── Seed preset data (first login only) ──
