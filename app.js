@@ -105,6 +105,18 @@ const AUTO_EXAM_TEMPLATES = [
     ]
   },
   {
+    id: 'kommunikation_praesentation',
+    matchCourseIds: ['c_kommunikation'],
+    matchCourseNames: ['kommunikation'],
+    type: 'projekt',
+    title: 'Kommunikation Präsentation',
+    note: 'SIM-Anmeldung erforderlich. Präsentation als PDF inkl. Notizen in Moodle hochladen.',
+    milestones: [
+      { id: 'sim_anmeldung', title: 'Anmeldung zur Präsentation über SIM', date: '2026-04-27', time: '' },
+      { id: 'unterlagen_abgabe', title: 'Abgabe der Präsentationsunterlagen als PDF', date: '2026-05-31', time: '23:59' }
+    ]
+  },
+  {
     id: 'b2b_praesentation',
     matchCourseIds: ['c_b2b'],
     matchCourseNames: ['b2b marketing'],
