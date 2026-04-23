@@ -1168,6 +1168,8 @@ body {
 .settings-body {
   padding: 0 32px 32px;
   overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .settings-card {
