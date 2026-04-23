@@ -1121,6 +1121,33 @@ body {
   letter-spacing: -0.5px;
 }
 
+.login-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+
+.login-tab {
+  flex: 1;
+  padding: 8px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.login-tab.active {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+
 .login-sub {
   font-size: 13px;
   text-align: center;
