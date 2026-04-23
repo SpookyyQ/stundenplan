@@ -38,6 +38,10 @@ const SEED_USERS = {
       { id: 'l_gps_fri_1', courseId: 'c_gps', day: 4, start: '11:45', end: '13:15', room: '' },
       { id: 'l_gps_fri_2', courseId: 'c_gps', day: 4, start: '14:15', end: '15:45', room: '' }
     ]
+  },
+  '5014296': {
+    firstName: 'Nico', lastName: 'Grasser',
+    courseIds: ['c_b2b', 'c_servicelearning', 'c_anlage', 'c_bizplan']
   }
 };
 
