@@ -1250,11 +1250,15 @@ body {
 
   .bottom-nav {
     display: flex;
-    flex-shrink: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     background: var(--surface);
     border-top: 1px solid var(--border);
-    height: 62px;
+    height: calc(62px + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
+    z-index: 999;
   }
 
   .bottom-nav-btn {
@@ -1277,15 +1281,13 @@ body {
   .bottom-nav-btn.active { color: var(--accent); }
 
   .app {
-    flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
+    flex-direction: row;
   }
 
   .main {
     flex: 1;
     overflow: hidden;
-    min-height: 0;
+    padding-bottom: calc(62px + env(safe-area-inset-bottom));
   }
 
   .grid-header {
