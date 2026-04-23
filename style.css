@@ -405,7 +405,7 @@ body {
 
 .grid-header {
   display: grid;
-  grid-template-columns: var(--time-col) repeat(5, var(--day-col));
+  grid-template-columns: var(--time-col) repeat(5, minmax(130px, 1fr));
   gap: 8px;
   margin-bottom: 4px;
   position: sticky;
@@ -443,7 +443,7 @@ body {
 
 .grid-body {
   display: grid;
-  grid-template-columns: var(--time-col) repeat(5, var(--day-col));
+  grid-template-columns: var(--time-col) repeat(5, minmax(130px, 1fr));
   gap: 8px;
   position: relative;
 }

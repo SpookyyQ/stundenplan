@@ -373,7 +373,6 @@ function renderTimetable() {
 
     const wrapper = document.createElement('div');
     wrapper.style.position = 'relative';
-    wrapper.style.minWidth = '130px';
 
     const linesDiv = document.createElement('div');
     linesDiv.style.position = 'absolute';
