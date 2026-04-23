@@ -983,8 +983,18 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 0 32px 32px;
+  padding: 0 32px 0;
   overflow-y: auto;
+}
+
+.exams-list::after,
+.mensa-list::after,
+.timetable-grid::after,
+.settings-body::after {
+  content: '';
+  display: block;
+  flex-shrink: 0;
+  height: 32px;
 }
 
 .exam-card {
