@@ -65,6 +65,47 @@ const PRESET_LESSONS = [
   { id: 'l_sl_4',      courseId: 'c_servicelearning',  day: 0, start: '10:00', end: '13:15', room: 'B-E-07',  date: '2026-07-13' }
 ];
 
+const SEMESTER_OPTIONS = [
+  { id: '', label: 'Keine Auswahl', courseIds: [] },
+  {
+    id: 'wi_bachelor_semester_6',
+    label: 'Semester 6 · Wirtschaftsingenieurwesen Bachelor',
+    courseIds: ['c_b2b']
+  }
+];
+
+const AUTO_EXAM_TEMPLATES = [
+  {
+    id: 'anlage_abgaben',
+    matchCourseIds: ['c_anlage'],
+    matchCourseNames: ['anlagestrategien'],
+    type: 'projekt',
+    title: 'Anlagestrategien Abgaben',
+    note: 'Alle Abgaben sind bis 23:59 Uhr fällig.',
+    milestones: [
+      { id: 'reflexion', title: 'Meilenstein 1: Reflexion der Vorerfahrung und Erwartungen an den Kurs', date: '2026-04-19', time: '23:59' },
+      { id: 'online_test', title: 'Online-Test', date: '2026-04-26', time: '23:59' },
+      { id: 'wissenschaftliche_dokumentation', title: 'Wissenschaftliche Dokumentation zweier Anlagestrategien', date: '2026-05-10', time: '23:59' },
+      { id: 'portfoliowahl', title: 'Portfoliowahl und Portfolioentwicklung (Forum)', date: '2026-06-30', time: '23:59' },
+      { id: 'abschlussdokumentation', title: 'Abschlussdokumentation', date: '2026-07-06', time: '23:59' }
+    ]
+  },
+  {
+    id: 'bizplan_zwischenstaende',
+    matchCourseIds: ['c_bizplan'],
+    matchCourseNames: ['business planning'],
+    type: 'projekt',
+    title: 'Business Planning Zwischenstände',
+    note: 'Automatisch aus den Moodle-Fälligkeiten übernommen.',
+    milestones: [
+      { id: 'zwischenstand_1', title: 'Dokumentation des Online-Anbieters und seiner Produkte (Produktbeschreibung)', date: '2026-05-07', time: '10:00' },
+      { id: 'zwischenstand_2', title: 'Marktanalyse und Marketing', date: '2026-05-21', time: '10:00' },
+      { id: 'zwischenstand_3', title: 'Benötigte Produktionsfaktoren', date: '2026-06-18', time: '10:00' },
+      { id: 'pruefungsdokument', title: 'Der komplette Business Plan inkl. Finanzplanung', date: '2026-07-09', time: '10:00' }
+    ]
+  }
+];
+
 // ── Search ──
 let searchQuery = '';
 
@@ -99,7 +140,7 @@ function handleSearch(q) {
 
 // ── State ──
 let currentUser = null;
-let profile     = { firstName: '', lastName: '', semesterEnd: SEMESTER_END };
+let profile     = { firstName: '', lastName: '', semesterEnd: SEMESTER_END, semesterKey: '' };
 let courses     = [];
 let lessons     = [];
 let exams       = [];
@@ -244,7 +285,8 @@ async function loadState() {
     profile = {
       firstName:   prof.first_name   || '',
       lastName:    prof.last_name    || '',
-      semesterEnd: prof.semester_end || SEMESTER_END
+      semesterEnd: prof.semester_end || SEMESTER_END,
+      semesterKey: prof.semester_key || ''
     };
   }
 
@@ -312,12 +354,68 @@ function dbDeleteExam(id) {
   return sb.from('exams').delete().eq('id', id).eq('user_id', currentUser.id);
 }
 
+function normalizeText(value) {
+  return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function isAutoExam(exam) {
+  return exam.id.startsWith('auto_');
+}
+
+function buildAutoExamsForCourses() {
+  return courses.flatMap(course => {
+    const normalizedName = normalizeText(course.name || '');
+    const templates = AUTO_EXAM_TEMPLATES.filter(template =>
+      template.matchCourseIds.includes(course.id) ||
+      template.matchCourseNames.some(name => normalizedName === normalizeText(name))
+    );
+
+    return templates.map(template => ({
+      id: `auto_${course.id}_${template.id}`,
+      courseId: course.id,
+      type: template.type,
+      title: template.title,
+      note: template.note || '',
+      milestones: template.milestones.map(m => ({
+        id: `${template.id}_${m.id}`,
+        title: m.title,
+        date: m.date,
+        time: m.time || ''
+      }))
+    }));
+  });
+}
+
+async function syncAutoExamsForCourses() {
+  const autoExams = buildAutoExamsForCourses();
+  const validAutoIds = new Set(autoExams.map(ex => ex.id));
+  const obsoleteAutoExams = exams.filter(ex => isAutoExam(ex) && !validAutoIds.has(ex.id));
+
+  const results = await Promise.all([
+    ...autoExams.map(dbUpsertExam),
+    ...obsoleteAutoExams.map(ex => dbDeleteExam(ex.id))
+  ]);
+
+  const failed = results.find(result => result?.error);
+  if (failed) throw failed.error;
+
+  exams = exams.filter(ex => !isAutoExam(ex) || validAutoIds.has(ex.id));
+  autoExams.forEach(autoExam => {
+    const idx = exams.findIndex(ex => ex.id === autoExam.id);
+    if (idx >= 0) exams[idx] = autoExam;
+    else exams.push(autoExam);
+  });
+
+  return { examsAdded: autoExams.length };
+}
+
 function dbSaveProfile() {
   return sb.from('profiles').upsert({
     id: currentUser.id,
     first_name: profile.firstName,
     last_name:  profile.lastName,
-    semester_end: profile.semesterEnd
+    semester_end: profile.semesterEnd,
+    semester_key: profile.semesterKey || ''
   });
 }
 
@@ -331,7 +429,7 @@ async function seedUser(config) {
   const lessons = [...baseLessons, ...(config.extraLessons || [])];
 
   await Promise.all([
-    sb.from('profiles').upsert({ id: uid, first_name: config.firstName, last_name: config.lastName, semester_end: SEMESTER_END }),
+    sb.from('profiles').upsert({ id: uid, first_name: config.firstName, last_name: config.lastName, semester_end: SEMESTER_END, semester_key: '' }),
     ...courses.map(c => sb.from('courses').upsert({
       id: c.id, user_id: uid,
       name: c.name, teacher: c.teacher, room: c.room, color: c.color, moodle_url: ''
@@ -703,6 +801,96 @@ function closeLessonModal() {
 }
 
 // ── Settings ──
+function getSemesterOption(id) {
+  return SEMESTER_OPTIONS.find(option => option.id === id) || SEMESTER_OPTIONS[0];
+}
+
+async function addPresetCoursesToPlan(courseIds) {
+  const presetCourses = PRESET_COURSES
+    .filter(c => courseIds.includes(c.id) && !courses.some(existing => existing.id === c.id))
+    .map(c => ({ ...c, moodleUrl: '' }));
+
+  const presetLessons = PRESET_LESSONS
+    .filter(l => courseIds.includes(l.courseId) && !lessons.some(existing => existing.id === l.id))
+    .map(l => ({ ...l }));
+
+  const results = await Promise.all([
+    ...presetCourses.map(dbUpsertCourse),
+    ...presetLessons.map(dbUpsertLesson)
+  ]);
+
+  const failed = results.find(result => result?.error);
+  if (failed) throw failed.error;
+
+  courses = [...courses, ...presetCourses];
+  lessons = [...lessons, ...presetLessons];
+
+  return {
+    coursesAdded: presetCourses.length,
+    lessonsAdded: presetLessons.length
+  };
+}
+
+function renderSemester(message = '') {
+  const select = document.getElementById('semesterSelect');
+  const preview = document.getElementById('semesterPlanPreview');
+  const status = document.getElementById('semesterStatus');
+  const selected = getSemesterOption(profile.semesterKey);
+
+  select.innerHTML = SEMESTER_OPTIONS
+    .map(option => `<option value="${option.id}">${option.label}</option>`)
+    .join('');
+  select.value = selected.id;
+
+  const selectedCourses = selected.courseIds
+    .map(id => PRESET_COURSES.find(course => course.id === id))
+    .filter(Boolean);
+
+  preview.innerHTML = selectedCourses.length
+    ? selectedCourses.map(course => `<div class="semester-course-row">
+        <span class="semester-course-dot" style="background:${course.color}"></span>
+        <div>
+          <div class="semester-course-name">${course.name}</div>
+          <div class="semester-course-meta">${course.teacher}${course.room ? ' · ' + course.room : ''}</div>
+        </div>
+      </div>`).join('')
+    : '<div class="semester-empty">Keine Kurse ausgewählt</div>';
+
+  status.textContent = message;
+  status.classList.toggle('hidden', !message);
+}
+
+async function handleSemesterSelection() {
+  const select = document.getElementById('semesterSelect');
+  const option = getSemesterOption(select.value);
+  const previousKey = profile.semesterKey;
+  select.disabled = true;
+
+  try {
+    profile.semesterKey = option.id;
+    await dbSaveProfile();
+    const added = await addPresetCoursesToPlan(option.courseIds);
+    await syncAutoExamsForCourses();
+
+    let message = 'Auswahl gespeichert.';
+    if (added.coursesAdded || added.lessonsAdded) {
+      message = 'B2B wurde zum Stundenplan hinzugefügt.';
+    } else if (option.courseIds.length) {
+      message = 'B2B ist bereits in deinem Stundenplan.';
+    }
+
+    renderSemester(message);
+    renderCourses();
+    renderTimetable();
+    renderNowNext();
+  } catch {
+    profile.semesterKey = previousKey;
+    renderSemester('Semester konnte nicht gespeichert werden.');
+  } finally {
+    select.disabled = false;
+  }
+}
+
 function renderSettings() {
   document.getElementById('settingsFirstName').value = profile.firstName;
   document.getElementById('settingsLastName').value  = profile.lastName;
@@ -729,6 +917,7 @@ function handleNavClick(view) {
   showView(view);
   if (view === 'timetable') renderTimetable();
   if (view === 'courses')   renderCourses();
+  if (view === 'semester')  renderSemester();
   if (view === 'settings')  renderSettings();
   if (view === 'exams')     renderExams();
   if (view === 'mensa')     { mensaOffset = 0; fetchMensa(mensaLocalISO(0)); }
@@ -740,6 +929,8 @@ document.querySelectorAll('.nav-btn, .bottom-nav-btn').forEach(btn => {
     handleNavClick(btn.dataset.view);
   });
 });
+
+document.getElementById('semesterSelect').addEventListener('change', handleSemesterSelection);
 
 // ── Navigation ──
 document.getElementById('prevWeek').addEventListener('click', () => { weekOffset--; renderTimetable(); });
@@ -761,7 +952,7 @@ document.getElementById('toggleWeekly').addEventListener('click', () => setLesso
 document.getElementById('toggleOnce').addEventListener('click',   () => setLessonToggle(true));
 
 // ── Course form ──
-document.getElementById('courseForm').addEventListener('submit', e => {
+document.getElementById('courseForm').addEventListener('submit', async e => {
   e.preventDefault();
   const id = document.getElementById('courseId').value;
   const data = {
@@ -775,26 +966,32 @@ document.getElementById('courseForm').addEventListener('submit', e => {
   if (id) {
     const idx = courses.findIndex(c => c.id === id);
     courses[idx] = { ...courses[idx], ...data };
-    dbUpsertCourse(courses[idx]);
+    await dbUpsertCourse(courses[idx]);
   } else {
     const newCourse = { id: uid(), ...data };
     courses.push(newCourse);
-    dbUpsertCourse(newCourse);
+    await dbUpsertCourse(newCourse);
   }
+  await syncAutoExamsForCourses();
   closeCourseModal();
   renderCourses();
+  renderExams();
+  renderNextExamWidget();
 });
 
-document.getElementById('deleteCourseBtn').addEventListener('click', () => {
+document.getElementById('deleteCourseBtn').addEventListener('click', async () => {
   const id = document.getElementById('courseId').value;
   if (!confirm('Kurs und alle zugehörigen Stunden löschen?')) return;
-  lessons.filter(l => l.courseId === id).forEach(l => dbDeleteLesson(l.id));
+  await Promise.all(lessons.filter(l => l.courseId === id).map(l => dbDeleteLesson(l.id)));
   lessons  = lessons.filter(l => l.courseId !== id);
   courses  = courses.filter(c => c.id !== id);
-  dbDeleteCourse(id);
+  await dbDeleteCourse(id);
+  await syncAutoExamsForCourses();
   closeCourseModal();
   renderCourses();
   renderTimetable();
+  renderExams();
+  renderNextExamWidget();
 });
 
 // ── Lesson form ──
@@ -1024,7 +1221,7 @@ function renderExams() {
         return `<div class="milestone-item">
           <div class="milestone-dot ${past?'done':isNext?'next':''}"></div>
           <span class="milestone-title ${past?'done':''}">${m.title}</span>
-          <span class="milestone-date">${dateF}</span>
+          <span class="milestone-date">${dateF}${m.time ? ' · ' + m.time : ''}</span>
           ${isNext ? '<span class="milestone-next-label">Nächste</span>' : ''}
         </div>`;
       }).join('')}</div>`;
@@ -1056,10 +1253,10 @@ function renderNextExamWidget() {
   exams.forEach(e => {
     if (e.type === 'klausur') {
       const d = new Date(e.date); d.setHours(0,0,0,0);
-      if (d >= today) upcoming.push({ title: e.title, date: e.date, days: daysUntil(e.date) });
+      if (d >= today) upcoming.push({ title: e.title, date: e.date, time: e.time || '', days: daysUntil(e.date) });
     } else {
       const m = nextMilestone(e);
-      if (m) upcoming.push({ title: `${e.title}: ${m.title}`, date: m.date, days: daysUntil(m.date) });
+      if (m) upcoming.push({ title: `${e.title}: ${m.title}`, date: m.date, time: m.time || '', days: daysUntil(m.date) });
     }
   });
 
@@ -1072,7 +1269,7 @@ function renderNextExamWidget() {
   el.innerHTML = `
     <div class="ne-label">Nächste Prüfung</div>
     <div class="ne-title">${next.title}</div>
-    <div class="ne-date">${dateF}</div>
+    <div class="ne-date">${dateF}${next.time ? ' · ' + next.time : ''}</div>
     <div class="ne-days">${next.days === 0 ? 'Heute!' : next.days === 1 ? 'Morgen' : `In ${next.days} Tagen`}</div>`;
 }
 
@@ -1237,6 +1434,8 @@ async function initApp() {
     await seedUser(seedConfig);
     await loadState();
   }
+
+  await syncAutoExamsForCourses();
 
   updateGreeting();
   renderTimetable();

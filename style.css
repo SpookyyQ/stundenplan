@@ -1090,6 +1090,52 @@ body {
   color: var(--accent);
 }
 
+.semester-card {
+  max-width: 560px;
+}
+
+.semester-plan {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.semester-course-row,
+.semester-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.semester-course-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.semester-course-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.semester-course-meta,
+.semester-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.semester-status {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #6aff9e;
+}
+
 .settings-section-title {
   font-size: 15px;
   font-weight: 700;
@@ -1275,13 +1321,13 @@ body {
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 10px;
+  font-size: 9.5px;
   cursor: pointer;
   padding: 6px 0;
   transition: color 0.18s;
 }
 
-.bottom-nav-btn .nav-icon { font-size: 20px; }
+.bottom-nav-btn .nav-icon { font-size: 19px; }
 .bottom-nav-btn.active { color: var(--accent); }
 
 /* Hide on desktop */
