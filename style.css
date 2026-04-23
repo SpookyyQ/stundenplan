@@ -18,18 +18,24 @@
   --hour-height: 72px;
 }
 
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   font-family: 'Segoe UI', system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
-  height: 100vh;
-  overflow: hidden;
+  position: fixed;
+  inset: 0;
 }
 
 /* ── Layout ── */
 .app {
   display: flex;
-  height: 100vh;
+  height: 100%;
 }
 
 /* ── Sidebar ── */
