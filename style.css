@@ -445,6 +445,7 @@ body {
   display: grid;
   grid-template-columns: var(--time-col) repeat(5, var(--day-col));
   gap: 8px;
+  position: relative;
 }
 
 .grid-time-col {
@@ -495,7 +496,7 @@ body {
 
 .time-indicator {
   position: absolute;
-  left: 0;
+  left: 60px;
   right: 0;
   height: 2px;
   background: #ff4d4d;
@@ -506,7 +507,7 @@ body {
 .time-indicator::before {
   content: '';
   position: absolute;
-  left: -4px;
+  left: -5px;
   top: -4px;
   width: 10px;
   height: 10px;

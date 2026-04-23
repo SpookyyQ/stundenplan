@@ -388,13 +388,6 @@ function renderTimetable() {
     wrapper.appendChild(linesDiv);
     wrapper.style.height = (HOURS.length * HOUR_HEIGHT) + 'px';
 
-    if (colDate.getTime() === today.getTime() && nowMin >= DAY_START * 60 && nowMin < (DAY_START + HOURS.length) * 60) {
-      const indicator = document.createElement('div');
-      indicator.className = 'time-indicator';
-      indicator.style.top = minutesToPx(nowMin - DAY_START * 60) + 'px';
-      wrapper.appendChild(indicator);
-    }
-
     const dayLessons = lessons.filter(l => {
       if (l.date) return l.date === colISO;
       if (l.day !== dayIndex) return false;
@@ -465,6 +458,13 @@ function renderTimetable() {
 
     body.appendChild(wrapper);
   });
+
+  if (nowMin >= DAY_START * 60 && nowMin < (DAY_START + HOURS.length) * 60) {
+    const indicator = document.createElement('div');
+    indicator.className = 'time-indicator';
+    indicator.style.top = minutesToPx(nowMin - DAY_START * 60) + 'px';
+    body.appendChild(indicator);
+  }
 
   grid.appendChild(body);
 }
