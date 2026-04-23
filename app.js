@@ -5,6 +5,17 @@ const SUPABASE_URL = 'https://fztnwuvcnuqydpoayzpq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6dG53dXZjbnVxeWRwb2F5enBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODkyMzcsImV4cCI6MjA5MjQ2NTIzN30.Kox8o3ZmcndZhSspY5UTF8JC30eT8UkGRctKKEQgGPs';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+function updateAppHeight() {
+  const height = window.visualViewport?.height || window.innerHeight;
+  document.documentElement.style.setProperty('--app-height', `${height}px`);
+}
+
+updateAppHeight();
+window.addEventListener('resize', updateAppHeight);
+window.addEventListener('orientationchange', updateAppHeight);
+window.visualViewport?.addEventListener('resize', updateAppHeight);
+window.visualViewport?.addEventListener('scroll', updateAppHeight);
+
 const SEMESTER_END = '2026-07-17';
 
 const SEED_USERS = {
