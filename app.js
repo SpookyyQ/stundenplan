@@ -565,6 +565,10 @@ function formatDate(date) {
   return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
 }
 
+function isAfterSemesterEnd(dateISO) {
+  return !!profile.semesterEnd && dateISO > profile.semesterEnd;
+}
+
 // ── Time helpers ──
 function timeToMinutes(t) {
   const [h, m] = t.split(':').map(Number);
@@ -652,6 +656,7 @@ function renderTimetable() {
     wrapper.style.height = (HOURS.length * HOUR_HEIGHT) + 'px';
 
     const dayLessons = lessons.filter(l => {
+      if (isAfterSemesterEnd(colISO)) return false;
       if (l.date) return l.date === colISO;
       if (l.day !== dayIndex) return false;
       if (l.startDate && colISO < l.startDate) return false;
