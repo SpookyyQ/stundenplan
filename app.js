@@ -1458,6 +1458,32 @@ function mensaLocalISO(offset = 0) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
+async function updateMensaStatus(dateISO) {
+  const el = document.getElementById('mensaStatus');
+  el.className = '';
+  el.textContent = '';
+  if (mensaOffset !== 0) return;
+
+  try {
+    const res = await fetch(`https://openmensa.org/api/v2/canteens/828/days/${dateISO}`);
+    if (!res.ok) { el.className = 'closed'; el.textContent = 'Geschlossen'; return; }
+    const day = await res.json();
+    if (day.closed) { el.className = 'closed'; el.textContent = 'Geschlossen'; return; }
+  } catch { return; }
+
+  const now  = new Date();
+  const dow  = now.getDay(); // 0=So,1=Mo,...,5=Fr,6=Sa
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const open  = 11 * 60;
+  const close = dow === 5 ? 14 * 60 : 14 * 60 + 30;
+
+  if (dow === 0 || dow === 6 || mins < open || mins >= close) {
+    el.className = 'closed'; el.textContent = 'Geschlossen';
+  } else {
+    el.className = 'open'; el.textContent = 'Geöffnet';
+  }
+}
+
 async function fetchMensa(dateISO) {
   const list = document.getElementById('mensaList');
   const sub  = document.getElementById('mensaDate');
@@ -1465,6 +1491,8 @@ async function fetchMensa(dateISO) {
 
   const d = new Date(dateISO + 'T12:00:00');
   const dateLabel = d.toLocaleDateString('de-DE', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+
+  updateMensaStatus(dateISO);
 
   try {
     const res   = await fetch(`https://openmensa.org/api/v2/canteens/828/days/${dateISO}/meals`);
