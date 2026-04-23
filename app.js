@@ -108,6 +108,7 @@ const AUTO_EXAM_TEMPLATES = [
     milestones: [
       { id: 'reflexion', title: 'Meilenstein 1: Reflexion der Vorerfahrung und Erwartungen an den Kurs', date: '2026-04-19', time: '23:59' },
       { id: 'online_test', title: 'Online-Test', date: '2026-04-26', time: '23:59' },
+      { id: 'upload_pruefungsdatei', title: 'Upload der aktualisierten Prüfungsdatei mit Moodle-Test-Ergebnis', date: '2026-04-26', time: '23:59' },
       { id: 'wissenschaftliche_dokumentation', title: 'Wissenschaftliche Dokumentation zweier Anlagestrategien', date: '2026-05-10', time: '23:59' },
       { id: 'portfoliowahl', title: 'Portfoliowahl und Portfolioentwicklung (Forum)', date: '2026-06-30', time: '23:59' },
       { id: 'abschlussdokumentation', title: 'Abschlussdokumentation', date: '2026-07-06', time: '23:59' }
