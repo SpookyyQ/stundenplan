@@ -315,7 +315,7 @@ function lessonHeight(start, end) { return minutesToPx(timeToMinutes(end) - time
 function showView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b => {
+  document.querySelectorAll('.nav-btn, .bottom-nav-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.view === name);
   });
 }
@@ -630,15 +630,19 @@ document.getElementById('saveSettings').addEventListener('click', () => {
 });
 
 // ── Nav ──
-document.querySelectorAll('.nav-btn').forEach(btn => {
+function handleNavClick(view) {
+  showView(view);
+  if (view === 'timetable') renderTimetable();
+  if (view === 'courses')   renderCourses();
+  if (view === 'settings')  renderSettings();
+  if (view === 'exams')     renderExams();
+  if (view === 'mensa')     { mensaOffset = 0; fetchMensa(mensaLocalISO(0)); }
+}
+
+document.querySelectorAll('.nav-btn, .bottom-nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     if (!btn.dataset.view) return;
-    showView(btn.dataset.view);
-    if (btn.dataset.view === 'timetable') renderTimetable();
-    if (btn.dataset.view === 'courses')   renderCourses();
-    if (btn.dataset.view === 'settings')  renderSettings();
-    if (btn.dataset.view === 'exams')     renderExams();
-    if (btn.dataset.view === 'mensa')     { mensaOffset = 0; fetchMensa(mensaLocalISO(0)); }
+    handleNavClick(btn.dataset.view);
   });
 });
 
