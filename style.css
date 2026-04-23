@@ -1441,6 +1441,32 @@ body {
   .settings-body {
     padding: 0 16px calc(var(--bottom-nav-height) + 32px + env(safe-area-inset-bottom));
   }
+  .courses-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .course-card {
+    min-height: 112px;
+    padding: 20px 18px 16px;
+    overflow: hidden;
+  }
+  .course-card-name {
+    font-size: 18px;
+    line-height: 1.2;
+    margin-top: 8px;
+    white-space: normal;
+  }
+  .course-card-teacher {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  .course-card-lessons {
+    font-size: 12px;
+    line-height: 1.35;
+    margin-top: 10px;
+    padding-top: 10px;
+  }
   .exams-list {
     gap: 10px;
     padding: 0 16px calc(var(--bottom-nav-height) + 32px + env(safe-area-inset-bottom));
