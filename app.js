@@ -103,6 +103,22 @@ const AUTO_EXAM_TEMPLATES = [
       { id: 'zwischenstand_3', title: 'Benötigte Produktionsfaktoren', date: '2026-06-18', time: '10:00' },
       { id: 'pruefungsdokument', title: 'Der komplette Business Plan inkl. Finanzplanung', date: '2026-07-09', time: '10:00' }
     ]
+  },
+  {
+    id: 'b2b_praesentation',
+    matchCourseIds: ['c_b2b'],
+    matchCourseNames: ['b2b marketing'],
+    onlyForUsers: [
+      { firstName: 'Jason', lastName: 'Bedranowsky' },
+      { firstName: 'Tim', lastName: 'Bellmann' }
+    ],
+    type: 'projekt',
+    title: 'B2B Marketing Präsentation',
+    note: 'Präsentation am 20.05.2026, Abgabe einen Tag vorher.',
+    milestones: [
+      { id: 'abgabe', title: 'Abgabe zur Präsentation', date: '2026-05-19', time: '23:59' },
+      { id: 'praesentation', title: 'Präsentation', date: '2026-05-20', time: '' }
+    ]
   }
 ];
 
@@ -362,12 +378,20 @@ function isAutoExam(exam) {
   return exam.id.startsWith('auto_');
 }
 
+function templateAppliesToCurrentUser(template) {
+  if (!template.onlyForUsers) return true;
+  return template.onlyForUsers.some(user =>
+    user.firstName === profile.firstName && user.lastName === profile.lastName
+  );
+}
+
 function buildAutoExamsForCourses() {
   return courses.flatMap(course => {
     const normalizedName = normalizeText(course.name || '');
     const templates = AUTO_EXAM_TEMPLATES.filter(template =>
-      template.matchCourseIds.includes(course.id) ||
-      template.matchCourseNames.some(name => normalizedName === normalizeText(name))
+      templateAppliesToCurrentUser(template) &&
+      (template.matchCourseIds.includes(course.id) ||
+        template.matchCourseNames.some(name => normalizedName === normalizeText(name)))
     );
 
     return templates.map(template => ({
