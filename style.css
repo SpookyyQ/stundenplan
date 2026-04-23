@@ -583,6 +583,32 @@ body {
   margin-top: 3px;
 }
 
+.lesson-break-card {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8px 12px;
+  border: 1px dashed rgba(255,255,255,0.16);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.045);
+  color: var(--text-muted);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.break-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.break-time {
+  margin-top: 2px;
+  font-size: 12px;
+}
+
 /* ── Courses Grid ── */
 .courses-grid {
   flex: 1;
@@ -1530,6 +1556,9 @@ body {
   .lesson-room, .lesson-teacher { font-size: 11px; }
   .lesson-room { margin-top: 2px; }
   .lesson-teacher { margin-top: 1px; }
+  .lesson-break-card { padding: 6px 8px; }
+  .break-name { font-size: 12px; }
+  .break-time { font-size: 11px; }
 
   .modal-overlay {
     align-items: flex-end;
