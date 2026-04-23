@@ -16,6 +16,7 @@
   --time-col:  60px;
   --day-col:   1fr;
   --hour-height: 72px;
+  --app-top: 0px;
   --app-height: 100dvh;
   --bottom-nav-height: 62px;
 }
@@ -31,7 +32,7 @@ body {
   background: var(--bg);
   color: var(--text);
   position: fixed;
-  top: 0;
+  top: var(--app-top);
   left: 0;
   right: 0;
   width: 100%;
