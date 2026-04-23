@@ -1,186 +1,242 @@
 'use strict';
 
-// ── Auth ──
-async function sha256(text) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
+// ── Supabase ──
+const SUPABASE_URL = 'https://fztnwuvcnuqydpoayzpq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6dG53dXZjbnVxeWRwb2F5enBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODkyMzcsImV4cCI6MjA5MjQ2NTIzN30.Kox8o3ZmcndZhSspY5UTF8JC30eT8UkGRctKKEQgGPs';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const PRESET_HASH      = 'f23438f7ff64fde18744272250bbf1957d65f351c3105649520187f31fc1718d';
-const PRESET_FIRSTNAME = 'Jason';
-const PRESET_LASTNAME  = 'Bedranowsky';
-
-const SEMESTER_END = '2026-07-17';
+const JASON_MATRIKEL = '5014263';
+const SEMESTER_END   = '2026-07-17';
 
 const PRESET_COURSES = [
-  { id: 'c_kommunikation',   name: 'Kommunikation',   teacher: 'Frau Seeliger', room: 'A1 06',  color: '#6adfff' },
+  { id: 'c_kommunikation',   name: 'Kommunikation',    teacher: 'Frau Seeliger', room: 'A1 06',  color: '#6adfff' },
   { id: 'c_servicelearning', name: 'Service Learning', teacher: 'Herr Schug',   room: '',       color: '#ffb86a' },
   { id: 'c_statistik2',      name: 'Statistik 2',      teacher: 'Frau Pulham',  room: 'A E 14', color: '#c46aff' },
-  { id: 'c_b2b',        name: 'B2B Marketing', teacher: 'Herr Steffen', room: 'A 1 05', color: '#6aff9e' },
-  { id: 'c_simulation',     name: 'Simulation',       teacher: 'Herr Heß',    room: 'A E 05', color: '#ff9e6a' },
-  { id: 'c_anlage',         name: 'Anlagestrategien', teacher: 'Herr George',  room: 'B-2-06', color: '#ff6a9e' },
-  { id: 'c_bizplan',        name: 'Business Planning', teacher: 'Herr George', room: 'D-1-12', color: '#6a9eff' }
+  { id: 'c_b2b',             name: 'B2B Marketing',    teacher: 'Herr Steffen', room: 'A 1 05', color: '#6aff9e' },
+  { id: 'c_simulation',      name: 'Simulation',       teacher: 'Herr Heß',    room: 'A E 05', color: '#ff9e6a' },
+  { id: 'c_anlage',          name: 'Anlagestrategien', teacher: 'Herr George',  room: 'B-2-06', color: '#ff6a9e' },
+  { id: 'c_bizplan',         name: 'Business Planning',teacher: 'Herr George',  room: 'D-1-12', color: '#6a9eff' }
 ];
 
 const PRESET_LESSONS = [
   { id: 'l_komm_tue',  courseId: 'c_kommunikation',   day: 1, start: '08:15', end: '09:45', room: '' },
-  { id: 'l_stat2_tue', courseId: 'c_statistik2', day: 1, start: '10:00', end: '11:30', room: '' },
-  { id: 'l_stat2_thu', courseId: 'c_statistik2', day: 3, start: '11:45', end: '13:15', room: 'B E 07' },
-  { id: 'l_b2b_wed', courseId: 'c_b2b',        day: 2, start: '08:15', end: '11:30', room: '', startDate: '2026-05-05' },
-  { id: 'l_sim_wed', courseId: 'c_simulation', day: 2, start: '11:45', end: '13:15', room: '' },
-  { id: 'l_biz_1', courseId: 'c_bizplan', day: 3, start: '10:00', end: '11:30', room: '', date: '2026-04-09' },
-  { id: 'l_biz_2', courseId: 'c_bizplan', day: 3, start: '10:00', end: '11:30', room: '', date: '2026-05-07' },
-  { id: 'l_biz_3', courseId: 'c_bizplan', day: 3, start: '10:00', end: '11:30', room: '', date: '2026-05-21' },
-  { id: 'l_biz_4', courseId: 'c_bizplan', day: 3, start: '10:00', end: '11:30', room: '', date: '2026-06-18' },
-  { id: 'l_biz_5', courseId: 'c_bizplan', day: 3, start: '10:00', end: '11:30', room: '', date: '2026-07-09' },
-  { id: 'l_anlage_1', courseId: 'c_anlage', day: 1, start: '11:45', end: '13:15', room: '', date: '2026-04-07' },
-  { id: 'l_anlage_2', courseId: 'c_anlage', day: 1, start: '11:45', end: '13:15', room: '', date: '2026-05-05' },
-  { id: 'l_anlage_3', courseId: 'c_anlage', day: 1, start: '11:45', end: '13:15', room: '', date: '2026-05-19' },
-  { id: 'l_anlage_4', courseId: 'c_anlage', day: 1, start: '11:45', end: '13:15', room: '', date: '2026-06-16' },
-  { id: 'l_anlage_5', courseId: 'c_anlage', day: 1, start: '11:45', end: '13:15', room: '', date: '2026-07-07' },
-  { id: 'l_sl_1', courseId: 'c_servicelearning', day: 0, start: '08:15', end: '09:45', room: 'E-2-02', date: '2026-04-27' },
-  { id: 'l_sl_2', courseId: 'c_servicelearning', day: 0, start: '11:45', end: '14:00', room: 'B-E-07',  date: '2026-05-11' },
-  { id: 'l_sl_3', courseId: 'c_servicelearning', day: 0, start: '13:15', end: '14:15', room: 'Digital', date: '2026-06-08' },
-  { id: 'l_sl_4', courseId: 'c_servicelearning', day: 0, start: '10:00', end: '13:15', room: 'B-E-07',  date: '2026-07-13' }
+  { id: 'l_stat2_tue', courseId: 'c_statistik2',       day: 1, start: '10:00', end: '11:30', room: '' },
+  { id: 'l_stat2_thu', courseId: 'c_statistik2',       day: 3, start: '11:45', end: '13:15', room: 'B E 07' },
+  { id: 'l_b2b_wed',   courseId: 'c_b2b',              day: 2, start: '08:15', end: '11:30', room: '', startDate: '2026-05-05' },
+  { id: 'l_sim_wed',   courseId: 'c_simulation',       day: 2, start: '11:45', end: '13:15', room: '' },
+  { id: 'l_biz_1',     courseId: 'c_bizplan',          day: 3, start: '10:00', end: '11:30', room: '', date: '2026-04-09' },
+  { id: 'l_biz_2',     courseId: 'c_bizplan',          day: 3, start: '10:00', end: '11:30', room: '', date: '2026-05-07' },
+  { id: 'l_biz_3',     courseId: 'c_bizplan',          day: 3, start: '10:00', end: '11:30', room: '', date: '2026-05-21' },
+  { id: 'l_biz_4',     courseId: 'c_bizplan',          day: 3, start: '10:00', end: '11:30', room: '', date: '2026-06-18' },
+  { id: 'l_biz_5',     courseId: 'c_bizplan',          day: 3, start: '10:00', end: '11:30', room: '', date: '2026-07-09' },
+  { id: 'l_anlage_1',  courseId: 'c_anlage',           day: 1, start: '11:45', end: '13:15', room: '', date: '2026-04-07' },
+  { id: 'l_anlage_2',  courseId: 'c_anlage',           day: 1, start: '11:45', end: '13:15', room: '', date: '2026-05-05' },
+  { id: 'l_anlage_3',  courseId: 'c_anlage',           day: 1, start: '11:45', end: '13:15', room: '', date: '2026-05-19' },
+  { id: 'l_anlage_4',  courseId: 'c_anlage',           day: 1, start: '11:45', end: '13:15', room: '', date: '2026-06-16' },
+  { id: 'l_anlage_5',  courseId: 'c_anlage',           day: 1, start: '11:45', end: '13:15', room: '', date: '2026-07-07' },
+  { id: 'l_sl_1',      courseId: 'c_servicelearning',  day: 0, start: '08:15', end: '09:45', room: 'E-2-02', date: '2026-04-27' },
+  { id: 'l_sl_2',      courseId: 'c_servicelearning',  day: 0, start: '11:45', end: '14:00', room: 'B-E-07',  date: '2026-05-11' },
+  { id: 'l_sl_3',      courseId: 'c_servicelearning',  day: 0, start: '13:15', end: '14:15', room: 'Digital', date: '2026-06-08' },
+  { id: 'l_sl_4',      courseId: 'c_servicelearning',  day: 0, start: '10:00', end: '13:15', room: 'B-E-07',  date: '2026-07-13' }
 ];
 
-function seedDefaults() {
-  if (!localStorage.getItem('sp_pw_hash')) {
-    localStorage.setItem('sp_pw_hash',   PRESET_HASH);
-  }
-  if (!localStorage.getItem('sp_firstName')) {
-    localStorage.setItem('sp_firstName', PRESET_FIRSTNAME);
-  }
-  if (!localStorage.getItem('sp_lastName')) {
-    localStorage.setItem('sp_lastName',  PRESET_LASTNAME);
-  }
-  if (!localStorage.getItem('sp_semester_end')) {
-    localStorage.setItem('sp_semester_end', SEMESTER_END);
-  }
-  // Seed courses if none exist
-  const existingCourses = JSON.parse(localStorage.getItem('sp_courses') || '[]');
-  PRESET_COURSES.forEach(pc => {
-    if (!existingCourses.find(c => c.id === pc.id)) {
-      existingCourses.push(pc);
-    }
-  });
-  localStorage.setItem('sp_courses', JSON.stringify(existingCourses));
-
-  // Seed lessons if none exist
-  const existingLessons = JSON.parse(localStorage.getItem('sp_lessons') || '[]');
-  PRESET_LESSONS.forEach(pl => {
-    if (!existingLessons.find(l => l.id === pl.id)) {
-      existingLessons.push(pl);
-    }
-  });
-  localStorage.setItem('sp_lessons', JSON.stringify(existingLessons));
-}
-
-async function initAuth() {
-  seedDefaults();
-  const loginScreen = document.getElementById('loginScreen');
-  const appRoot     = document.getElementById('appRoot');
-  const loginForm   = document.getElementById('loginForm');
-  const loginSub    = document.getElementById('loginSub');
-  const loginLabel  = document.getElementById('loginLabel');
-  const loginBtn    = document.getElementById('loginBtn');
-  const loginError  = document.getElementById('loginError');
-  const confirmGroup = document.getElementById('confirmGroup');
-  const loginConfirm = document.getElementById('loginConfirm');
-
-  const storedHash = localStorage.getItem('sp_pw_hash');
-  const isSetup = false; // password is pre-configured
-
-  if (sessionStorage.getItem('sp_authed') === '1') {
-    loginScreen.style.display = 'none';
-    appRoot.style.display = 'flex';
-    return;
-  }
-
-  loginForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    loginError.classList.add('hidden');
-    const pw = document.getElementById('loginPassword').value;
-
-    if (isSetup) {
-      const pw2 = loginConfirm.value;
-      if (pw !== pw2) {
-        loginError.textContent = 'Die Eingaben stimmen nicht überein.';
-        loginError.classList.remove('hidden');
-        return;
-      }
-      if (pw.length < 4) {
-        loginError.textContent = 'Mindestens 4 Zeichen erforderlich.';
-        loginError.classList.remove('hidden');
-        return;
-      }
-      localStorage.setItem('sp_pw_hash', await sha256(pw));
-      sessionStorage.setItem('sp_authed', '1');
-      loginScreen.style.display = 'none';
-      appRoot.style.display = 'flex';
-      initApp();
-    } else {
-      const hash = await sha256(pw);
-      if (hash === storedHash) {
-        sessionStorage.setItem('sp_authed', '1');
-        loginScreen.style.display = 'none';
-        appRoot.style.display = 'flex';
-        initApp();
-      } else {
-        loginError.textContent = 'Falsche Matrikelnummer.';
-        loginError.classList.remove('hidden');
-        document.getElementById('loginPassword').value = '';
-      }
-    }
-  });
-}
-
-document.getElementById('logoutBtn').addEventListener('click', () => {
-  sessionStorage.removeItem('sp_authed');
-  location.reload();
-});
+// ── State ──
+let currentUser = null;
+let profile     = { firstName: '', lastName: '', semesterEnd: SEMESTER_END };
+let courses     = [];
+let lessons     = [];
+let exams       = [];
+let weekOffset  = 0;
 
 // ── Constants ──
 const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
-const HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 08:00–20:00
-const HOUR_HEIGHT = 72; // px, must match CSS --hour-height
-const DAY_START = 8;    // 08:00
+const HOURS = Array.from({ length: 13 }, (_, i) => i + 8);
+const HOUR_HEIGHT = 72;
+const DAY_START   = 8;
 
 const COLORS = [
-  '#7c6aff', '#ff6a9e', '#6adfff', '#6aff9e', '#ffb86a',
-  '#ff6a6a', '#c46aff', '#6a9eff', '#ffea6a', '#ff9e6a'
+  '#7c6aff','#ff6a9e','#6adfff','#6aff9e','#ffb86a',
+  '#ff6a6a','#c46aff','#6a9eff','#ffea6a','#ff9e6a'
 ];
 
-// ── State ── (loaded after seedDefaults runs)
-let courses  = [];
-let lessons  = [];
-let weekOffset = 0;
-
-function loadState() {
-  courses = JSON.parse(localStorage.getItem('sp_courses') || '[]');
-  lessons = JSON.parse(localStorage.getItem('sp_lessons') || '[]');
+// ── Auth ──
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appRoot').style.display = 'flex';
 }
 
-// ── Greeting ──
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Guten Morgen';
-  if (h < 18) return 'Guten Tag';
-  return 'Guten Abend';
+let loginMode = 'login';
+
+function setLoginMode(mode) {
+  loginMode = mode;
+  document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+  document.getElementById('confirmBox').style.display = mode === 'register' ? '' : 'none';
+  document.getElementById('loginBtn').textContent = mode === 'login' ? 'Anmelden' : 'Registrieren';
+  document.getElementById('loginSub').textContent = mode === 'login'
+    ? 'Melde dich mit deiner Matrikelnummer an.'
+    : 'Erstelle deinen persönlichen Stundenplan.';
+  document.getElementById('loginError').classList.add('hidden');
 }
 
-function updateGreeting() {
-  const firstName = localStorage.getItem('sp_firstName') || '';
-  const lastName  = localStorage.getItem('sp_lastName')  || '';
-  const name = [firstName, lastName].filter(Boolean).join(' ');
-  const el = document.getElementById('greetingText');
-  if (el) el.textContent = name ? `${getGreeting()}, ${name}` : 'Wochenplan';
+async function initAuth() {
+  document.getElementById('tabLogin').addEventListener('click', () => setLoginMode('login'));
+  document.getElementById('tabRegister').addEventListener('click', () => setLoginMode('register'));
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    await initApp();
+    showApp();
+    return;
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const matrikel = document.getElementById('loginMatrikel').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const email    = `${matrikel}@eliteplan.htw`;
+    const errorEl  = document.getElementById('loginError');
+    const btn      = document.getElementById('loginBtn');
+    errorEl.classList.add('hidden');
+    btn.disabled = true;
+    btn.textContent = '…';
+
+    try {
+      if (loginMode === 'register') {
+        const confirm = document.getElementById('loginConfirm').value;
+        if (password !== confirm) throw new Error('Passwörter stimmen nicht überein.');
+        if (password.length < 6)  throw new Error('Passwort muss mindestens 6 Zeichen haben.');
+        const { data, error } = await sb.auth.signUp({ email, password });
+        if (error) throw new Error(error.message);
+        currentUser = data.user;
+      } else {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw new Error('Falsche Matrikelnummer oder Passwort.');
+        currentUser = data.user;
+      }
+      await initApp();
+      showApp();
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = loginMode === 'login' ? 'Anmelden' : 'Registrieren';
+    }
+  });
 }
 
-// ── Persistence ──
-function save() {
-  localStorage.setItem('sp_courses', JSON.stringify(courses));
-  localStorage.setItem('sp_lessons', JSON.stringify(lessons));
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await sb.auth.signOut();
+  location.reload();
+});
+
+// ── Data loading ──
+async function loadState() {
+  const uid = currentUser.id;
+  const [{ data: prof }, { data: cData }, { data: lData }, { data: eData }] = await Promise.all([
+    sb.from('profiles').select('*').eq('id', uid).single(),
+    sb.from('courses').select('*').eq('user_id', uid),
+    sb.from('lessons').select('*').eq('user_id', uid),
+    sb.from('exams').select('*').eq('user_id', uid)
+  ]);
+
+  if (prof) {
+    profile = {
+      firstName:   prof.first_name   || '',
+      lastName:    prof.last_name    || '',
+      semesterEnd: prof.semester_end || SEMESTER_END
+    };
+  }
+
+  courses = (cData || []).map(r => ({
+    id: r.id, name: r.name,
+    teacher: r.teacher || '', room: r.room || '',
+    color: r.color || '#7c6aff', moodleUrl: r.moodle_url || ''
+  }));
+
+  lessons = (lData || []).map(r => ({
+    id: r.id, courseId: r.course_id,
+    day: r.day, start: r.start_time, end: r.end_time,
+    room: r.room || '',
+    ...(r.date       ? { date:      r.date }       : {}),
+    ...(r.start_date ? { startDate: r.start_date } : {})
+  }));
+
+  exams = (eData || []).map(r => ({
+    id: r.id, courseId: r.course_id, type: r.type,
+    title: r.title, note: r.note || '',
+    ...(r.date ? { date: r.date } : {}),
+    ...(r.time ? { time: r.time } : {}),
+    ...(r.room ? { room: r.room } : {}),
+    milestones: r.milestones || []
+  }));
+}
+
+// ── DB helpers ──
+function dbUpsertCourse(c) {
+  return sb.from('courses').upsert({
+    id: c.id, user_id: currentUser.id,
+    name: c.name, teacher: c.teacher || '',
+    room: c.room || '', color: c.color, moodle_url: c.moodleUrl || ''
+  });
+}
+
+function dbDeleteCourse(id) {
+  return sb.from('courses').delete().eq('id', id).eq('user_id', currentUser.id);
+}
+
+function dbUpsertLesson(l) {
+  return sb.from('lessons').upsert({
+    id: l.id, user_id: currentUser.id,
+    course_id: l.courseId, day: l.day,
+    start_time: l.start, end_time: l.end,
+    room: l.room || '', date: l.date || null, start_date: l.startDate || null
+  });
+}
+
+function dbDeleteLesson(id) {
+  return sb.from('lessons').delete().eq('id', id).eq('user_id', currentUser.id);
+}
+
+function dbUpsertExam(ex) {
+  return sb.from('exams').upsert({
+    id: ex.id, user_id: currentUser.id,
+    course_id: ex.courseId, type: ex.type,
+    title: ex.title, note: ex.note || '',
+    date: ex.date || null, time: ex.time || null,
+    room: ex.room || null, milestones: ex.milestones || []
+  });
+}
+
+function dbDeleteExam(id) {
+  return sb.from('exams').delete().eq('id', id).eq('user_id', currentUser.id);
+}
+
+function dbSaveProfile() {
+  return sb.from('profiles').upsert({
+    id: currentUser.id,
+    first_name: profile.firstName,
+    last_name:  profile.lastName,
+    semester_end: profile.semesterEnd
+  });
+}
+
+// ── Seed Jason's preset data (first login only) ──
+async function seedJason() {
+  const uid = currentUser.id;
+  await Promise.all([
+    sb.from('profiles').upsert({ id: uid, first_name: 'Jason', last_name: 'Bedranowsky', semester_end: SEMESTER_END }),
+    ...PRESET_COURSES.map(c => sb.from('courses').upsert({
+      id: c.id, user_id: uid,
+      name: c.name, teacher: c.teacher, room: c.room, color: c.color, moodle_url: ''
+    })),
+    ...PRESET_LESSONS.map(l => sb.from('lessons').upsert({
+      id: l.id, user_id: uid, course_id: l.courseId,
+      day: l.day, start_time: l.start, end_time: l.end,
+      room: l.room || '', date: l.date || null, start_date: l.startDate || null
+    }))
+  ]);
 }
 
 // ── ID generator ──
@@ -200,6 +256,20 @@ function darkenHex(hex, amount = 0.45) {
   const g = Math.round(parseInt(hex.slice(3,5),16) * (1 - amount));
   const b = Math.round(parseInt(hex.slice(5,7),16) * (1 - amount));
   return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+}
+
+// ── Greeting ──
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Guten Morgen';
+  if (h < 18) return 'Guten Tag';
+  return 'Guten Abend';
+}
+
+function updateGreeting() {
+  const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
+  const el = document.getElementById('greetingText');
+  if (el) el.textContent = name ? `${getGreeting()}, ${name}` : 'Wochenplan';
 }
 
 // ── Week helpers ──
@@ -228,17 +298,9 @@ function timeToMinutes(t) {
   return h * 60 + m;
 }
 
-function minutesToPx(minutes) {
-  return (minutes / 60) * HOUR_HEIGHT;
-}
-
-function lessonTop(start) {
-  return minutesToPx(timeToMinutes(start) - DAY_START * 60);
-}
-
-function lessonHeight(start, end) {
-  return minutesToPx(timeToMinutes(end) - timeToMinutes(start));
-}
+function minutesToPx(minutes) { return (minutes / 60) * HOUR_HEIGHT; }
+function lessonTop(start)     { return minutesToPx(timeToMinutes(start) - DAY_START * 60); }
+function lessonHeight(start, end) { return minutesToPx(timeToMinutes(end) - timeToMinutes(start)); }
 
 // ── Views ──
 function showView(name) {
@@ -266,10 +328,9 @@ function renderTimetable() {
   const grid = document.getElementById('timetableGrid');
   grid.innerHTML = '';
 
-  // Header
   const header = document.createElement('div');
   header.className = 'grid-header';
-  header.innerHTML = '<div></div>'; // empty time col
+  header.innerHTML = '<div></div>';
   DAYS.forEach((name, i) => {
     const d = new Date(monday);
     d.setDate(d.getDate() + i);
@@ -281,11 +342,9 @@ function renderTimetable() {
   });
   grid.appendChild(header);
 
-  // Body
   const body = document.createElement('div');
   body.className = 'grid-body';
 
-  // Time column
   const timeCol = document.createElement('div');
   timeCol.className = 'grid-time-col';
   HOURS.forEach(h => {
@@ -296,7 +355,6 @@ function renderTimetable() {
   });
   body.appendChild(timeCol);
 
-  // Day columns
   DAYS.forEach((_, dayIndex) => {
     const colDate = new Date(monday);
     colDate.setDate(colDate.getDate() + dayIndex);
@@ -306,7 +364,6 @@ function renderTimetable() {
     wrapper.style.position = 'relative';
     wrapper.style.minWidth = '130px';
 
-    // Hour lines
     const linesDiv = document.createElement('div');
     linesDiv.style.position = 'absolute';
     linesDiv.style.inset = '0';
@@ -318,21 +375,18 @@ function renderTimetable() {
       linesDiv.appendChild(line);
     });
     wrapper.appendChild(linesDiv);
-
-    // Total height
     wrapper.style.height = (HOURS.length * HOUR_HEIGHT) + 'px';
 
-    // Lessons: weekly (no date) OR date-specific matching this column
     const dayLessons = lessons.filter(l => {
       if (l.date) return l.date === colISO;
       if (l.day !== dayIndex) return false;
       if (l.startDate && colISO < l.startDate) return false;
       return true;
     });
-    // Assign columns to handle overlaps (Google Calendar style)
+
     const sorted = [...dayLessons].sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
     const cols = [];
-    const lessonCol    = new Map();
+    const lessonCol     = new Map();
     const lessonNumCols = new Map();
 
     sorted.forEach(l => {
@@ -344,7 +398,6 @@ function renderTimetable() {
       if (!placed) { lessonCol.set(l.id, cols.length); cols.push(timeToMinutes(l.end)); }
     });
 
-    // Per-lesson numCols = max column among all overlapping lessons + 1
     sorted.forEach(l => {
       const s = timeToMinutes(l.start), e = timeToMinutes(l.end);
       let maxCol = lessonCol.get(l.id);
@@ -360,8 +413,8 @@ function renderTimetable() {
       const course = courses.find(c => c.id === lesson.courseId);
       if (!course) return;
 
-      const col      = lessonCol.get(lesson.id) ?? 0;
-      const numCols  = lessonNumCols.get(lesson.id) ?? 1;
+      const col     = lessonCol.get(lesson.id) ?? 0;
+      const numCols = lessonNumCols.get(lesson.id) ?? 1;
       const widthPct = 100 / numCols;
       const leftPct  = col * widthPct;
 
@@ -369,9 +422,9 @@ function renderTimetable() {
       card.className = 'lesson-card';
       card.style.top    = lessonTop(lesson.start) + 'px';
       card.style.height = Math.max(lessonHeight(lesson.start, lesson.end), 28) + 'px';
-      card.style.left  = leftPct + '%';
-      card.style.right = numCols > 1 ? 'unset' : '0';
-      card.style.width = numCols > 1 ? `calc(${widthPct}% - 4px)` : '';
+      card.style.left   = leftPct + '%';
+      card.style.right  = numCols > 1 ? 'unset' : '0';
+      card.style.width  = numCols > 1 ? `calc(${widthPct}% - 4px)` : '';
       const dark = darkenHex(course.color, 0.5);
       card.style.background = `linear-gradient(135deg, ${course.color} 0%, ${dark} 100%)`;
       const tc = textColor(course.color);
@@ -384,7 +437,6 @@ function renderTimetable() {
         ${room ? `<div class="lesson-room" style="color:${tc};opacity:0.6">${room}</div>` : ''}
         ${course.teacher ? `<div class="lesson-teacher" style="color:${tc};opacity:0.6">${course.teacher}</div>` : ''}
       `;
-
       card.addEventListener('click', () => openLessonModal(lesson.id));
       wrapper.appendChild(card);
     });
@@ -401,11 +453,7 @@ function renderCourses() {
   grid.innerHTML = '';
 
   if (courses.length === 0) {
-    grid.innerHTML = `
-      <div class="empty-state">
-        <div style="font-size:40px">✦</div>
-        <p>Noch keine Kurse. Füge deinen ersten Kurs hinzu!</p>
-      </div>`;
+    grid.innerHTML = `<div class="empty-state"><div style="font-size:40px">✦</div><p>Noch keine Kurse. Füge deinen ersten Kurs hinzu!</p></div>`;
     return;
   }
 
@@ -480,7 +528,6 @@ function openCourseModal(id) {
     buildColorPicker(COLORS[courses.length % COLORS.length]);
     deleteBtn.classList.add('hidden');
   }
-
   modal.classList.add('open');
 }
 
@@ -501,9 +548,7 @@ function openLessonModal(id) {
   const deleteBtn = document.getElementById('deleteLessonBtn');
   const select = document.getElementById('lessonCourse');
 
-  select.innerHTML = courses.map(c =>
-    `<option value="${c.id}">${c.name}</option>`
-  ).join('');
+  select.innerHTML = courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 
   if (courses.length === 0) {
     alert('Bitte zuerst einen Kurs anlegen!');
@@ -533,7 +578,6 @@ function openLessonModal(id) {
     document.getElementById('lessonRoom').value = '';
     deleteBtn.classList.add('hidden');
   }
-
   modal.classList.add('open');
 }
 
@@ -541,7 +585,29 @@ function closeLessonModal() {
   document.getElementById('modalLesson').classList.remove('open');
 }
 
-// ── Event listeners ──
+// ── Settings ──
+function renderSettings() {
+  document.getElementById('settingsFirstName').value = profile.firstName;
+  document.getElementById('settingsLastName').value  = profile.lastName;
+  const end = profile.semesterEnd;
+  if (end) {
+    const d = new Date(end);
+    document.getElementById('semesterEndDisplay').textContent =
+      d.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
+}
+
+document.getElementById('saveSettings').addEventListener('click', () => {
+  profile.firstName = document.getElementById('settingsFirstName').value.trim();
+  profile.lastName  = document.getElementById('settingsLastName').value.trim();
+  updateGreeting();
+  dbSaveProfile();
+  const btn = document.getElementById('saveSettings');
+  btn.textContent = 'Gespeichert ✓';
+  setTimeout(() => { btn.textContent = 'Speichern'; }, 1800);
+});
+
+// ── Nav ──
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     if (!btn.dataset.view) return;
@@ -554,7 +620,199 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
   });
 });
 
-// Exam modal events
+// ── Navigation ──
+document.getElementById('prevWeek').addEventListener('click', () => { weekOffset--; renderTimetable(); });
+document.getElementById('nextWeek').addEventListener('click', () => { weekOffset++; renderTimetable(); });
+document.getElementById('todayBtn').addEventListener('click', () => { weekOffset = 0; renderTimetable(); });
+document.getElementById('openAddLesson').addEventListener('click', () => openLessonModal(null));
+document.getElementById('openAddCourse').addEventListener('click', () => openCourseModal(null));
+
+// Close modals
+document.getElementById('closeLessonModal').addEventListener('click', closeLessonModal);
+document.getElementById('cancelLessonBtn').addEventListener('click', closeLessonModal);
+document.getElementById('closeCourseModal').addEventListener('click', closeCourseModal);
+document.getElementById('cancelCourseBtn').addEventListener('click', closeCourseModal);
+document.getElementById('modalLesson').addEventListener('click', e => { if (e.target === e.currentTarget) closeLessonModal(); });
+document.getElementById('modalCourse').addEventListener('click', e => { if (e.target === e.currentTarget) closeCourseModal(); });
+
+// Toggle weekly/once
+document.getElementById('toggleWeekly').addEventListener('click', () => setLessonToggle(false));
+document.getElementById('toggleOnce').addEventListener('click',   () => setLessonToggle(true));
+
+// ── Course form ──
+document.getElementById('courseForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const id = document.getElementById('courseId').value;
+  const data = {
+    name:      document.getElementById('courseName').value.trim(),
+    teacher:   document.getElementById('courseTeacher').value.trim(),
+    room:      document.getElementById('courseRoom').value.trim(),
+    moodleUrl: document.getElementById('courseMoodle').value.trim(),
+    color:     getSelectedColor(),
+  };
+
+  if (id) {
+    const idx = courses.findIndex(c => c.id === id);
+    courses[idx] = { ...courses[idx], ...data };
+    dbUpsertCourse(courses[idx]);
+  } else {
+    const newCourse = { id: uid(), ...data };
+    courses.push(newCourse);
+    dbUpsertCourse(newCourse);
+  }
+  closeCourseModal();
+  renderCourses();
+});
+
+document.getElementById('deleteCourseBtn').addEventListener('click', () => {
+  const id = document.getElementById('courseId').value;
+  if (!confirm('Kurs und alle zugehörigen Stunden löschen?')) return;
+  lessons.filter(l => l.courseId === id).forEach(l => dbDeleteLesson(l.id));
+  lessons  = lessons.filter(l => l.courseId !== id);
+  courses  = courses.filter(c => c.id !== id);
+  dbDeleteCourse(id);
+  closeCourseModal();
+  renderCourses();
+  renderTimetable();
+});
+
+// ── Lesson form ──
+document.getElementById('lessonForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const id     = document.getElementById('lessonId').value;
+  const isOnce = document.getElementById('toggleOnce').classList.contains('active');
+  const dateVal = document.getElementById('lessonDate').value;
+
+  if (isOnce && !dateVal) { alert('Bitte ein Datum auswählen.'); return; }
+
+  const data = {
+    courseId: document.getElementById('lessonCourse').value,
+    start:    document.getElementById('lessonStart').value,
+    end:      document.getElementById('lessonEnd').value,
+    room:     document.getElementById('lessonRoom').value.trim(),
+    ...(isOnce
+      ? { date: dateVal, day: new Date(dateVal).getDay() === 0 ? 6 : new Date(dateVal).getDay() - 1 }
+      : { day: Number(document.getElementById('lessonDay').value) }
+    )
+  };
+
+  if (timeToMinutes(data.end) <= timeToMinutes(data.start)) {
+    alert('Die Endzeit muss nach der Startzeit liegen.');
+    return;
+  }
+
+  if (id) {
+    const idx = lessons.findIndex(l => l.id === id);
+    lessons[idx] = { id, ...data };
+    dbUpsertLesson(lessons[idx]);
+  } else {
+    const newLesson = { id: uid(), ...data };
+    lessons.push(newLesson);
+    dbUpsertLesson(newLesson);
+  }
+  closeLessonModal();
+  renderTimetable();
+});
+
+document.getElementById('deleteLessonBtn').addEventListener('click', () => {
+  const id = document.getElementById('lessonId').value;
+  lessons = lessons.filter(l => l.id !== id);
+  dbDeleteLesson(id);
+  closeLessonModal();
+  renderTimetable();
+});
+
+// ── Exams ──
+let examType  = 'klausur';
+let milestones = [];
+
+function daysUntil(dateStr) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(dateStr); d.setHours(0,0,0,0);
+  return Math.round((d - today) / 86400000);
+}
+
+function countdownLabel(days) {
+  if (days < 0)   return { text: 'Vorbei', cls: 'past' };
+  if (days === 0) return { text: 'Heute!', cls: 'today' };
+  if (days <= 7)  return { text: `${days}T`, cls: 'soon' };
+  return { text: `${days}T`, cls: '' };
+}
+
+function nextMilestone(exam) {
+  if (exam.type !== 'projekt') return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  return [...exam.milestones]
+    .sort((a,b) => new Date(a.date) - new Date(b.date))
+    .find(m => new Date(m.date) >= today) || null;
+}
+
+function setExamType(type) {
+  examType = type;
+  document.getElementById('toggleKlausur').classList.toggle('active', type === 'klausur');
+  document.getElementById('toggleProjekt').classList.toggle('active', type === 'projekt');
+  document.getElementById('klausurFields').classList.toggle('hidden', type !== 'klausur');
+  document.getElementById('projektFields').classList.toggle('hidden', type !== 'projekt');
+}
+
+function renderMilestoneInputs() {
+  const container = document.getElementById('milestoneList');
+  container.innerHTML = milestones.map((m, i) => `
+    <div class="milestone-form-row">
+      <input type="text" placeholder="Bezeichnung" value="${m.title}" data-mi="${i}" data-field="title" />
+      <input type="date" value="${m.date}" data-mi="${i}" data-field="date" style="width:130px" />
+      <button type="button" class="milestone-remove" data-mi="${i}">✕</button>
+    </div>`).join('');
+
+  container.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', () => { milestones[inp.dataset.mi][inp.dataset.field] = inp.value; });
+  });
+  container.querySelectorAll('.milestone-remove').forEach(btn => {
+    btn.addEventListener('click', () => { milestones.splice(Number(btn.dataset.mi), 1); renderMilestoneInputs(); });
+  });
+}
+
+function openExamModal(id) {
+  const modal = document.getElementById('modalExam');
+  const select = document.getElementById('examCourse');
+  select.innerHTML = courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  const deleteBtn = document.getElementById('deleteExamBtn');
+
+  if (id) {
+    const exam = exams.find(e => e.id === id);
+    document.getElementById('modalExamTitle').textContent = 'Bearbeiten';
+    document.getElementById('examId').value = id;
+    document.getElementById('examTitle').value = exam.title;
+    document.getElementById('examCourse').value = exam.courseId;
+    document.getElementById('examNote').value = exam.note || '';
+    setExamType(exam.type);
+    if (exam.type === 'klausur') {
+      document.getElementById('examDate').value = exam.date || '';
+      document.getElementById('examTime').value = exam.time || '';
+      document.getElementById('examRoom').value = exam.room || '';
+    } else {
+      milestones = (exam.milestones || []).map(m => ({...m}));
+      renderMilestoneInputs();
+    }
+    deleteBtn.classList.remove('hidden');
+  } else {
+    document.getElementById('modalExamTitle').textContent = 'Hinzufügen';
+    document.getElementById('examId').value = '';
+    document.getElementById('examTitle').value = '';
+    document.getElementById('examNote').value = '';
+    document.getElementById('examDate').value = '';
+    document.getElementById('examTime').value = '';
+    document.getElementById('examRoom').value = '';
+    milestones = [];
+    setExamType('klausur');
+    renderMilestoneInputs();
+    deleteBtn.classList.add('hidden');
+  }
+  modal.classList.add('open');
+}
+
+function closeExamModal() { document.getElementById('modalExam').classList.remove('open'); }
+
 document.getElementById('openAddExam').addEventListener('click', () => openExamModal(null));
 document.getElementById('closeExamModal').addEventListener('click', closeExamModal);
 document.getElementById('cancelExamBtn').addEventListener('click', closeExamModal);
@@ -580,9 +838,15 @@ document.getElementById('examForm').addEventListener('submit', e => {
           room: document.getElementById('examRoom').value.trim() }
       : { milestones: milestones.filter(m => m.title && m.date) })
   };
-  if (id) { const i = exams.findIndex(e => e.id === id); exams[i] = { id, ...data }; }
-  else     { exams.push({ id: uid(), ...data }); }
-  saveExams();
+  if (id) {
+    const i = exams.findIndex(e => e.id === id);
+    exams[i] = { id, ...data };
+    dbUpsertExam(exams[i]);
+  } else {
+    const newExam = { id: uid(), ...data };
+    exams.push(newExam);
+    dbUpsertExam(newExam);
+  }
   closeExamModal();
   renderExams();
   renderNextExamWidget();
@@ -592,186 +856,21 @@ document.getElementById('deleteExamBtn').addEventListener('click', () => {
   const id = document.getElementById('examId').value;
   if (!confirm('Eintrag löschen?')) return;
   exams = exams.filter(e => e.id !== id);
-  saveExams();
+  dbDeleteExam(id);
   closeExamModal();
   renderExams();
   renderNextExamWidget();
 });
-
-function renderSettings() {
-  document.getElementById('settingsFirstName').value = localStorage.getItem('sp_firstName') || '';
-  document.getElementById('settingsLastName').value  = localStorage.getItem('sp_lastName')  || '';
-  const end = localStorage.getItem('sp_semester_end');
-  if (end) {
-    const d = new Date(end);
-    document.getElementById('semesterEndDisplay').textContent =
-      d.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
-  }
-}
-
-document.getElementById('saveSettings').addEventListener('click', () => {
-  localStorage.setItem('sp_firstName', document.getElementById('settingsFirstName').value.trim());
-  localStorage.setItem('sp_lastName',  document.getElementById('settingsLastName').value.trim());
-  updateGreeting();
-  const btn = document.getElementById('saveSettings');
-  btn.textContent = 'Gespeichert ✓';
-  setTimeout(() => { btn.textContent = 'Speichern'; }, 1800);
-});
-
-// Navigation
-document.getElementById('prevWeek').addEventListener('click', () => {
-  weekOffset--; renderTimetable();
-});
-document.getElementById('nextWeek').addEventListener('click', () => {
-  weekOffset++; renderTimetable();
-});
-document.getElementById('todayBtn').addEventListener('click', () => {
-  weekOffset = 0; renderTimetable();
-});
-
-// Open modals
-document.getElementById('openAddLesson').addEventListener('click', () => openLessonModal(null));
-document.getElementById('openAddCourse').addEventListener('click', () => openCourseModal(null));
-
-// Close modals
-document.getElementById('closeLessonModal').addEventListener('click', closeLessonModal);
-document.getElementById('cancelLessonBtn').addEventListener('click', closeLessonModal);
-document.getElementById('closeCourseModal').addEventListener('click', closeCourseModal);
-document.getElementById('cancelCourseBtn').addEventListener('click', closeCourseModal);
-
-// Toggle weekly/once
-document.getElementById('toggleWeekly').addEventListener('click', () => setLessonToggle(false));
-document.getElementById('toggleOnce').addEventListener('click',   () => setLessonToggle(true));
-
-// Close on overlay click
-document.getElementById('modalLesson').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeLessonModal();
-});
-document.getElementById('modalCourse').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeCourseModal();
-});
-
-// Save course
-document.getElementById('courseForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const id = document.getElementById('courseId').value;
-  const data = {
-    name:      document.getElementById('courseName').value.trim(),
-    teacher:   document.getElementById('courseTeacher').value.trim(),
-    room:      document.getElementById('courseRoom').value.trim(),
-    moodleUrl: document.getElementById('courseMoodle').value.trim(),
-    color:     getSelectedColor(),
-  };
-
-  if (id) {
-    const idx = courses.findIndex(c => c.id === id);
-    courses[idx] = { ...courses[idx], ...data };
-  } else {
-    courses.push({ id: uid(), ...data });
-  }
-
-  save();
-  closeCourseModal();
-  renderCourses();
-});
-
-// Delete course
-document.getElementById('deleteCourseBtn').addEventListener('click', () => {
-  const id = document.getElementById('courseId').value;
-  if (!confirm('Kurs und alle zugehörigen Stunden löschen?')) return;
-  courses  = courses.filter(c => c.id !== id);
-  lessons  = lessons.filter(l => l.courseId !== id);
-  save();
-  closeCourseModal();
-  renderCourses();
-  renderTimetable();
-});
-
-// Save lesson
-document.getElementById('lessonForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const id     = document.getElementById('lessonId').value;
-  const isOnce = document.getElementById('toggleOnce').classList.contains('active');
-  const dateVal = document.getElementById('lessonDate').value;
-
-  if (isOnce && !dateVal) {
-    alert('Bitte ein Datum auswählen.');
-    return;
-  }
-
-  const data = {
-    courseId: document.getElementById('lessonCourse').value,
-    start:    document.getElementById('lessonStart').value,
-    end:      document.getElementById('lessonEnd').value,
-    room:     document.getElementById('lessonRoom').value.trim(),
-    ...(isOnce
-      ? { date: dateVal, day: new Date(dateVal).getDay() === 0 ? 6 : new Date(dateVal).getDay() - 1 }
-      : { day: Number(document.getElementById('lessonDay').value) }
-    )
-  };
-
-  if (timeToMinutes(data.end) <= timeToMinutes(data.start)) {
-    alert('Die Endzeit muss nach der Startzeit liegen.');
-    return;
-  }
-
-  if (id) {
-    const idx = lessons.findIndex(l => l.id === id);
-    lessons[idx] = { id, ...data };
-  } else {
-    lessons.push({ id: uid(), ...data });
-  }
-
-  save();
-  closeLessonModal();
-  renderTimetable();
-});
-
-// Delete lesson
-document.getElementById('deleteLessonBtn').addEventListener('click', () => {
-  const id = document.getElementById('lessonId').value;
-  lessons = lessons.filter(l => l.id !== id);
-  save();
-  closeLessonModal();
-  renderTimetable();
-});
-
-// ── Exams ──
-let exams = JSON.parse(localStorage.getItem('sp_exams') || '[]');
-
-function saveExams() { localStorage.setItem('sp_exams', JSON.stringify(exams)); }
-
-function daysUntil(dateStr) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const d = new Date(dateStr); d.setHours(0,0,0,0);
-  return Math.round((d - today) / 86400000);
-}
-
-function countdownLabel(days) {
-  if (days < 0)  return { text: 'Vorbei', cls: 'past' };
-  if (days === 0) return { text: 'Heute!', cls: 'today' };
-  if (days <= 7)  return { text: `${days}T`, cls: 'soon' };
-  return { text: `${days}T`, cls: '' };
-}
-
-function nextMilestone(exam) {
-  if (exam.type !== 'projekt') return null;
-  const today = new Date(); today.setHours(0,0,0,0);
-  return [...exam.milestones]
-    .sort((a,b) => new Date(a.date) - new Date(b.date))
-    .find(m => new Date(m.date) >= today) || null;
-}
 
 function renderExams() {
   const list = document.getElementById('examsList');
   list.innerHTML = '';
 
   if (exams.length === 0) {
-    list.innerHTML = `<div class="empty-state"><div style="font-size:40px">📋</div><p>Noch keine Klausuren oder Projekte eingetragen.</p></div>`;
+    list.innerHTML = `<div class="empty-state"><div style="font-size:40px">✎</div><p>Noch keine Klausuren oder Projekte eingetragen.</p></div>`;
     return;
   }
 
-  // Sort: upcoming first, then past
   const sorted = [...exams].sort((a, b) => {
     const da = a.type === 'klausur' ? a.date : (nextMilestone(a)?.date || '9999');
     const db = b.type === 'klausur' ? b.date : (nextMilestone(b)?.date || '9999');
@@ -856,90 +955,14 @@ function renderNextExamWidget() {
     <div class="ne-days">${next.days === 0 ? 'Heute!' : next.days === 1 ? 'Morgen' : `In ${next.days} Tagen`}</div>`;
 }
 
-// Exam modal
-let examType = 'klausur';
-let milestones = [];
-
-function setExamType(type) {
-  examType = type;
-  document.getElementById('toggleKlausur').classList.toggle('active', type === 'klausur');
-  document.getElementById('toggleProjekt').classList.toggle('active', type === 'projekt');
-  document.getElementById('klausurFields').classList.toggle('hidden', type !== 'klausur');
-  document.getElementById('projektFields').classList.toggle('hidden', type !== 'projekt');
-}
-
-function renderMilestoneInputs() {
-  const container = document.getElementById('milestoneList');
-  container.innerHTML = milestones.map((m, i) => `
-    <div class="milestone-form-row">
-      <input type="text" placeholder="Bezeichnung" value="${m.title}" data-mi="${i}" data-field="title" />
-      <input type="date" value="${m.date}" data-mi="${i}" data-field="date" style="width:130px" />
-      <button type="button" class="milestone-remove" data-mi="${i}">✕</button>
-    </div>`).join('');
-
-  container.querySelectorAll('input').forEach(inp => {
-    inp.addEventListener('input', () => {
-      milestones[inp.dataset.mi][inp.dataset.field] = inp.value;
-    });
-  });
-  container.querySelectorAll('.milestone-remove').forEach(btn => {
-    btn.addEventListener('click', () => {
-      milestones.splice(Number(btn.dataset.mi), 1);
-      renderMilestoneInputs();
-    });
-  });
-}
-
-function openExamModal(id) {
-  const modal = document.getElementById('modalExam');
-  const select = document.getElementById('examCourse');
-  select.innerHTML = courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-
-  const deleteBtn = document.getElementById('deleteExamBtn');
-
-  if (id) {
-    const exam = exams.find(e => e.id === id);
-    document.getElementById('modalExamTitle').textContent = 'Bearbeiten';
-    document.getElementById('examId').value = id;
-    document.getElementById('examTitle').value = exam.title;
-    document.getElementById('examCourse').value = exam.courseId;
-    document.getElementById('examNote').value = exam.note || '';
-    setExamType(exam.type);
-    if (exam.type === 'klausur') {
-      document.getElementById('examDate').value = exam.date || '';
-      document.getElementById('examTime').value = exam.time || '';
-      document.getElementById('examRoom').value = exam.room || '';
-    } else {
-      milestones = (exam.milestones || []).map(m => ({...m}));
-      renderMilestoneInputs();
-    }
-    deleteBtn.classList.remove('hidden');
-  } else {
-    document.getElementById('modalExamTitle').textContent = 'Hinzufügen';
-    document.getElementById('examId').value = '';
-    document.getElementById('examTitle').value = '';
-    document.getElementById('examNote').value = '';
-    document.getElementById('examDate').value = '';
-    document.getElementById('examTime').value = '';
-    document.getElementById('examRoom').value = '';
-    milestones = [];
-    setExamType('klausur');
-    renderMilestoneInputs();
-    deleteBtn.classList.add('hidden');
-  }
-  modal.classList.add('open');
-}
-
-function closeExamModal() { document.getElementById('modalExam').classList.remove('open'); }
-
 // ── Now & Next ──
 function renderNowNext() {
   const el = document.getElementById('nowNext');
   if (!el) return;
 
   const now   = new Date();
-  const today = now.getDay(); // 0=Sun,1=Mon,...
-  const dayIndex = today === 0 ? -1 : today - 1; // Mon=0..Fri=4, weekend=-1
+  const today = now.getDay();
+  const dayIndex = today === 0 ? -1 : today - 1;
   const todayISO = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
   const nowMin   = now.getHours() * 60 + now.getMinutes();
 
@@ -964,22 +987,20 @@ function renderNowNext() {
   if (current) {
     const course = courses.find(c => c.id === current.courseId);
     const room   = current.room || course?.room || '';
-    html += `
-      <div class="nn-card is-now">
-        <div class="nn-label">Jetzt</div>
-        <div class="nn-name">${course?.name || '–'}</div>
-        <div class="nn-time">${current.start}–${current.end}${room ? ' · ' + room : ''}</div>
-      </div>`;
+    html += `<div class="nn-card is-now">
+      <div class="nn-label">Jetzt</div>
+      <div class="nn-name">${course?.name || '–'}</div>
+      <div class="nn-time">${current.start}–${current.end}${room ? ' · ' + room : ''}</div>
+    </div>`;
   }
   if (next) {
     const course = courses.find(c => c.id === next.courseId);
     const room   = next.room || course?.room || '';
-    html += `
-      <div class="nn-card">
-        <div class="nn-label">Als nächstes</div>
-        <div class="nn-name">${course?.name || '–'}</div>
-        <div class="nn-time">${next.start}–${next.end}${room ? ' · ' + room : ''}</div>
-      </div>`;
+    html += `<div class="nn-card">
+      <div class="nn-label">Als nächstes</div>
+      <div class="nn-name">${course?.name || '–'}</div>
+      <div class="nn-time">${next.start}–${next.end}${room ? ' · ' + room : ''}</div>
+    </div>`;
   }
   el.innerHTML = html;
 }
@@ -1002,7 +1023,7 @@ async function fetchMensa(dateISO) {
   const dateLabel = d.toLocaleDateString('de-DE', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
 
   try {
-    const res  = await fetch(`https://openmensa.org/api/v2/canteens/828/days/${dateISO}/meals`);
+    const res   = await fetch(`https://openmensa.org/api/v2/canteens/828/days/${dateISO}/meals`);
     if (!res.ok) throw new Error();
     const meals = await res.json();
 
@@ -1075,8 +1096,16 @@ async function fetchWeather() {
 }
 
 // ── Init ──
-function initApp() {
-  loadState();
+async function initApp() {
+  await loadState();
+
+  // Auto-seed Jason's preset data on first login
+  const matrikel = currentUser.email.split('@')[0];
+  if (matrikel === JASON_MATRIKEL && courses.length === 0) {
+    await seedJason();
+    await loadState();
+  }
+
   updateGreeting();
   renderTimetable();
   renderNowNext();
@@ -1086,6 +1115,4 @@ function initApp() {
   setInterval(renderNowNext, 60 * 1000);
 }
 
-initAuth().then(() => {
-  if (sessionStorage.getItem('sp_authed') === '1') initApp();
-});
+initAuth();
