@@ -1812,7 +1812,7 @@ async function updateMensaStatus(dateISO) {
   if (mensaOffset !== 0) return;
 
   try {
-    const res = await fetch(`https://openmensa.org/api/v2/canteens/828/days/${dateISO}`);
+    const res = await fetch(`https://openmensa.org/api/v2/canteens/829/days/${dateISO}`);
     if (!res.ok) { el.className = 'closed'; el.textContent = 'Geschlossen'; return; }
     const day = await res.json();
     if (day.closed) { el.className = 'closed'; el.textContent = 'Geschlossen'; return; }
@@ -1842,7 +1842,7 @@ async function fetchMensa(dateISO) {
   updateMensaStatus(dateISO);
 
   try {
-    const res   = await fetch(`https://openmensa.org/api/v2/canteens/828/days/${dateISO}/meals`);
+    const res   = await fetch(`https://openmensa.org/api/v2/canteens/829/days/${dateISO}/meals`);
     if (!res.ok) throw new Error();
     const meals = await res.json();
 
