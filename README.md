@@ -21,7 +21,7 @@ Wochenplan · Kurse · Klausuren · Mensa · Lerngruppen — alles an einem Ort.
 
 Das Projekt ist als **Progressive Web App (PWA)** gebaut, lässt sich also wie eine native App auf Smartphone oder Desktop installieren und funktioniert auch offline.
 
-> Erstellt von  für den Studiengang Wirtschaftsingenieurwesen.
+> Erstellt für den Studiengang Wirtschaftsingenieurwesen.
 
 ---
 
@@ -180,8 +180,6 @@ Gruppen erstellen oder per Code beitreten, Mitglieder verwalten und deren Stunde
 ## Credits
 
 <div align="center">
-
-**ElitePlan** wurde von  entwickelt.
 
 Wetterdaten: [Open-Meteo](https://open-meteo.com) · Mensa-Daten: HTW Saar · Auth & DB: [Supabase](https://supabase.com)
 
